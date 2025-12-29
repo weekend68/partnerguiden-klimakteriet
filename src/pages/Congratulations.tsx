@@ -61,8 +61,8 @@ export default function Congratulations() {
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
-          <Link to="/" className="font-serif text-xl font-semibold text-foreground">
-            Partnerguiden
+          <Link to="/" className="font-serif text-lg sm:text-xl font-semibold text-foreground">
+            Partnerguiden: Klimakteriet
           </Link>
           <nav className="flex items-center gap-4">
             <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
