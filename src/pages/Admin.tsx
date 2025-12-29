@@ -267,7 +267,7 @@ export default function Admin() {
                             {quiz.completions} genomförda
                           </span>
                           <span className="font-medium text-foreground">
-                            Snitt: {quiz.averageScore}/3
+                            Snitt: {quiz.averageScore}/5
                           </span>
                         </div>
                       </div>
