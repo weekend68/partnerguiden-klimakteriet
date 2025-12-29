@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { articles } from "@/data/articles";
-import { ArrowRight, BookOpen, CheckCircle, Heart } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle, Heart, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useProgress } from "@/hooks/useProgress";
+import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+  const { articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
   const firstArticle = articles[0];
 
   return (
@@ -18,9 +23,54 @@ const Index = () => {
             <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Alla artiklar
             </Link>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {user.email}
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/auth">
+                  <User className="h-4 w-4 mr-2" />
+                  Logga in
+                </Link>
+              </Button>
+            )}
           </nav>
         </div>
       </header>
+
+      {/* Progress Banner (if logged in and has progress) */}
+      {user && overallProgress > 0 && (
+        <div className="bg-primary/5 border-b border-primary/10 py-4">
+          <div className="container">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-heading text-primary">{articlesRead}</p>
+                  <p className="text-xs text-muted-foreground">artiklar lästa</p>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl font-heading text-primary">{quizzesCompleted}</p>
+                  <p className="text-xs text-muted-foreground">quiz klarade</p>
+                </div>
+              </div>
+              <div className="flex-1 max-w-xs">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Total framsteg</span>
+                  <span className="font-medium text-foreground">{overallProgress}%</span>
+                </div>
+                <Progress value={overallProgress} className="h-2" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="bg-hero-gradient py-20 md:py-32">
@@ -45,6 +95,11 @@ const Index = () => {
               </Link>
             </Button>
           </div>
+          {!user && (
+            <p className="text-sm text-muted-foreground mt-6 animate-fade-in stagger-3">
+              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg
+            </p>
+          )}
         </div>
       </section>
 

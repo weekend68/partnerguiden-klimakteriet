@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Articles from "./pages/Articles";
 import Article from "./pages/Article";
 import Quiz from "./pages/Quiz";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/artiklar" element={<Articles />} />
           <Route path="/artikel/:slug" element={<Article />} />
           <Route path="/quiz/:slug" element={<Quiz />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

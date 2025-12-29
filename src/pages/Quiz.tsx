@@ -6,6 +6,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useProgress } from "@/hooks/useProgress";
 
 interface QuizQuestion {
   question: string;
@@ -17,6 +19,9 @@ interface QuizQuestion {
 export default function Quiz() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { markQuizCompleted, overallProgress, totalArticles, articlesRead, quizzesCompleted } = useProgress();
+  
   const article = articles.find((a) => a.slug === slug);
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -69,6 +74,13 @@ export default function Quiz() {
     fetchQuiz();
   }, [article]);
 
+  // Save quiz result when complete
+  useEffect(() => {
+    if (quizComplete && user && slug) {
+      markQuizCompleted(slug, score);
+    }
+  }, [quizComplete, user, slug, score, markQuizCompleted]);
+
   if (!article) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -104,6 +116,7 @@ export default function Quiz() {
 
   const currentArticleIndex = articles.findIndex((a) => a.slug === slug);
   const nextArticle = articles[currentArticleIndex + 1];
+  const isAllComplete = articlesRead === totalArticles && quizzesCompleted + 1 === totalArticles;
 
   if (loading) {
     return (
@@ -172,11 +185,28 @@ export default function Quiz() {
                   : "Tack för att du försökte! Artikeln innehåller mycket bra information att ta del av."}
               </p>
 
+              {user && (
+                <p className="text-sm text-muted-foreground mb-6">
+                  Din framsteg: {overallProgress}% av kursen avklarad
+                </p>
+              )}
+
+              {!user && (
+                <p className="text-sm text-muted-foreground mb-6">
+                  <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg
+                </p>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
                   Läs artikeln igen
                 </Button>
-                {nextArticle ? (
+                {isAllComplete ? (
+                  <Button onClick={() => navigate("/grattis")}>
+                    Se ditt resultat
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : nextArticle ? (
                   <Button onClick={() => navigate(`/artikel/${nextArticle.slug}`)}>
                     Nästa artikel
                     <ArrowRight className="ml-2 h-4 w-4" />
