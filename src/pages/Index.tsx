@@ -76,9 +76,9 @@ const Index = () => {
                   <p className="text-xs text-muted-foreground">av {totalArticles} quiz</p>
                 </div>
               </div>
-              <div className="flex-1 max-w-xs">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Total framsteg</span>
+              <div className="flex-1 max-w-xs w-full">
+                <div className="flex items-center justify-between text-sm mb-2 gap-4">
+                  <span className="text-muted-foreground">Din kunskapsresa:</span>
                   <span className="font-medium text-foreground">{overallProgress}%</span>
                 </div>
                 <Progress value={overallProgress} className="h-2" />
