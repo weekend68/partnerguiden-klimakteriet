@@ -1,0 +1,143 @@
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+
+interface Progress {
+  article_slug: string;
+  article_read: boolean;
+  quiz_completed: boolean;
+  quiz_score: number | null;
+}
+
+export function useProgress() {
+  const { user } = useAuth();
+  const [progress, setProgress] = useState<Progress[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProgress = useCallback(async () => {
+    if (!user) {
+      setProgress([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("user_progress")
+      .select("article_slug, article_read, quiz_completed, quiz_score")
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error fetching progress:", error);
+    } else {
+      setProgress(data || []);
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
+
+  const markArticleRead = async (articleSlug: string) => {
+    if (!user) return { error: new Error("Not logged in") };
+
+    const existing = progress.find((p) => p.article_slug === articleSlug);
+
+    if (existing) {
+      const { error } = await supabase
+        .from("user_progress")
+        .update({ article_read: true })
+        .eq("user_id", user.id)
+        .eq("article_slug", articleSlug);
+
+      if (!error) {
+        setProgress((prev) =>
+          prev.map((p) =>
+            p.article_slug === articleSlug ? { ...p, article_read: true } : p
+          )
+        );
+      }
+      return { error };
+    } else {
+      const { error } = await supabase.from("user_progress").insert({
+        user_id: user.id,
+        article_slug: articleSlug,
+        article_read: true,
+        quiz_completed: false,
+      });
+
+      if (!error) {
+        setProgress((prev) => [
+          ...prev,
+          { article_slug: articleSlug, article_read: true, quiz_completed: false, quiz_score: null },
+        ]);
+      }
+      return { error };
+    }
+  };
+
+  const markQuizCompleted = async (articleSlug: string, score: number) => {
+    if (!user) return { error: new Error("Not logged in") };
+
+    const existing = progress.find((p) => p.article_slug === articleSlug);
+
+    if (existing) {
+      const { error } = await supabase
+        .from("user_progress")
+        .update({ quiz_completed: true, quiz_score: score })
+        .eq("user_id", user.id)
+        .eq("article_slug", articleSlug);
+
+      if (!error) {
+        setProgress((prev) =>
+          prev.map((p) =>
+            p.article_slug === articleSlug
+              ? { ...p, quiz_completed: true, quiz_score: score }
+              : p
+          )
+        );
+      }
+      return { error };
+    } else {
+      const { error } = await supabase.from("user_progress").insert({
+        user_id: user.id,
+        article_slug: articleSlug,
+        article_read: true,
+        quiz_completed: true,
+        quiz_score: score,
+      });
+
+      if (!error) {
+        setProgress((prev) => [
+          ...prev,
+          { article_slug: articleSlug, article_read: true, quiz_completed: true, quiz_score: score },
+        ]);
+      }
+      return { error };
+    }
+  };
+
+  const getArticleProgress = (articleSlug: string) => {
+    return progress.find((p) => p.article_slug === articleSlug) || null;
+  };
+
+  const totalArticles = 13;
+  const articlesRead = progress.filter((p) => p.article_read).length;
+  const quizzesCompleted = progress.filter((p) => p.quiz_completed).length;
+  const overallProgress = Math.round(
+    ((articlesRead + quizzesCompleted) / (totalArticles * 2)) * 100
+  );
+
+  return {
+    progress,
+    loading,
+    markArticleRead,
+    markQuizCompleted,
+    getArticleProgress,
+    articlesRead,
+    quizzesCompleted,
+    totalArticles,
+    overallProgress,
+    refetch: fetchProgress,
+  };
+}
