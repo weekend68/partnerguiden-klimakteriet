@@ -33,7 +33,7 @@ serve(async (req) => {
             role: "system",
             content: `Du är en expert på att skapa reflekterande quizfrågor för par som vill förstå klimakteriet bättre. 
             
-Skapa 3 reflekterande frågor baserat på artikeln. Varje fråga ska:
+Skapa 5 reflekterande frågor baserat på artikeln. Varje fråga ska:
 - Hjälpa partnern förstå hur hen kan stötta bättre
 - Vara empatisk och respektfull
 - Ha 4 svarsalternativ där ett är "bäst" (mest empatiskt/stöttande)

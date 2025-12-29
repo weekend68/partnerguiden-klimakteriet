@@ -123,7 +123,7 @@ const Article = () => {
             {progress?.quiz_completed && (
               <div className="bg-primary text-primary-foreground rounded-full px-3 py-1.5 text-sm font-medium flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4" />
-                Quiz klarat ({progress.quiz_score}/3)
+                Quiz klarat ({progress.quiz_score}/5)
               </div>
             )}
           </div>
@@ -206,8 +206,8 @@ const Article = () => {
               </h3>
               <p className="text-muted-foreground mb-4">
                 {progress?.quiz_completed 
-                  ? `Du fick ${progress.quiz_score} av 3 rätt. Vill du försöka igen?`
-                  : "Ta ett kort quiz med 3 frågor baserat på artikeln du just läst."
+                  ? `Du fick ${progress.quiz_score} av 5 rätt. Vill du försöka igen?`
+                  : "Ta ett kort quiz med 5 frågor baserat på artikeln du just läst."
                 }
               </p>
               <Button onClick={() => navigate(`/quiz/${article.slug}`)}>
