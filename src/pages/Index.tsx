@@ -10,15 +10,15 @@ import heroBackground from "@/assets/hero-background.jpg";
 const Index = () => {
   const { user, signOut } = useAuth();
   const { articlesRead, quizzesCompleted, totalArticles, overallProgress, getArticleProgress } = useProgress();
-  
+
   // Find the next article to read (first one where quiz is not completed)
-  const nextArticle = user 
+  const nextArticle = user
     ? articles.find((article) => {
         const progress = getArticleProgress(article.slug);
         return !progress?.quiz_completed;
       }) || articles[0]
     : articles[0];
-  
+
   const hasProgress = user && articlesRead > 0;
 
   return (
@@ -27,18 +27,23 @@ const Index = () => {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="font-serif text-lg sm:text-xl font-semibold text-foreground leading-tight">
-            <span className="sm:hidden">Partnerguiden:<br />Klimakteriet</span>
-            <span className="hidden sm:inline">Partnerguiden: Klimakteriet</span>
+            <span className="sm:hidden">
+              Partnerguiden:
+              <br />
+              Klimakteriet
+            </span>
+            <span className="hidden sm:inline">Partnerguiden: Klimakteriet </span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
-            <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+            <Link
+              to="/artiklar"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+            >
               Alla artiklar
             </Link>
             {user ? (
               <div className="flex items-center gap-2 sm:gap-3">
-                <span className="text-sm text-muted-foreground hidden md:inline">
-                  {user.email}
-                </span>
+                <span className="text-sm text-muted-foreground hidden md:inline">{user.email}</span>
                 <Button variant="ghost" size="sm" onClick={() => signOut()}>
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -86,19 +91,20 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 overflow-hidden">
         {/* Background image */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroBackground})` }}
         />
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-background/75" />
-        
+
         <div className="container max-w-4xl text-center relative z-10">
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 text-balance animate-fade-in">
             Bli en bättre partner under klimakteriet på 10 dagar
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-[720px] mx-auto animate-fade-in stagger-1">
-            En gratis 10-dagarskurs skapad för dig som partner. Lär dig de biologiska sanningarna, undvik de vanligaste kommunikationsfällorna och stärk er relation.
+            En gratis 10-dagarskurs skapad för dig som partner. Lär dig de biologiska sanningarna, undvik de vanligaste
+            kommunikationsfällorna och stärk er relation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in stagger-2">
             <Button asChild size="lg" className="text-base">
@@ -108,14 +114,15 @@ const Index = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-base bg-background/80 backdrop-blur-sm">
-              <Link to="/artiklar">
-                Se alla 13 artiklar
-              </Link>
+              <Link to="/artiklar">Se alla 13 artiklar</Link>
             </Button>
           </div>
           {!user && (
             <p className="text-sm text-muted-foreground mt-6 animate-fade-in stagger-3">
-              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg
+              <Link to="/auth" className="text-primary hover:underline">
+                Logga in
+              </Link>{" "}
+              för att spara dina framsteg
             </p>
           )}
         </div>
@@ -163,15 +170,9 @@ const Index = () => {
             {hasProgress ? `Nästa artikel: ${nextArticle.title}` : `Första artikeln: ${nextArticle.title}`}
           </h2>
           <div className="bg-card rounded-lg shadow-card overflow-hidden">
-            <img 
-              src={nextArticle.imageUrl} 
-              alt={nextArticle.imageAlt}
-              className="w-full h-64 object-cover"
-            />
+            <img src={nextArticle.imageUrl} alt={nextArticle.imageAlt} className="w-full h-64 object-cover" />
             <div className="p-6 md:p-8">
-              <p className="text-muted-foreground mb-6 text-lg">
-                {nextArticle.excerpt}
-              </p>
+              <p className="text-muted-foreground mb-6 text-lg">{nextArticle.excerpt}</p>
               <Button asChild>
                 <Link to={`/artikel/${nextArticle.slug}`}>
                   {hasProgress ? "Fortsätt läsa" : "Läs hela artikeln"}
@@ -187,9 +188,7 @@ const Index = () => {
       <footer className="py-12 border-t border-border">
         <div className="container text-center text-muted-foreground">
           <p className="font-serif text-lg mb-2">Partnerguiden: Klimakteriet</p>
-          <p className="text-sm">
-            Kunskap som stärker relationer under klimakteriet.
-          </p>
+          <p className="text-sm">Kunskap som stärker relationer under klimakteriet.</p>
         </div>
       </footer>
     </div>
