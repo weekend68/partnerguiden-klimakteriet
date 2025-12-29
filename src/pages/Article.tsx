@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getArticleBySlug, articles } from "@/data/articles";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, BookCheck, CheckCircle, User, LogOut } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +12,7 @@ const Article = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { getArticleProgress, markArticleRead } = useProgress();
+  const { getArticleProgress, markArticleRead, articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
   
   const article = slug ? getArticleBySlug(slug) : undefined;
   const progress = slug ? getArticleProgress(slug) : null;
@@ -80,6 +81,28 @@ const Article = () => {
         </div>
       </header>
 
+      {/* Progress Banner (if logged in) */}
+      {user && (
+        <div className="bg-primary/5 border-b border-primary/10 py-3">
+          <div className="container">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-muted-foreground">
+                  {articlesRead}/{totalArticles} artiklar
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">
+                  {quizzesCompleted}/{totalArticles} quiz
+                </span>
+              </div>
+              <div className="flex items-center gap-3 flex-1 max-w-[200px]">
+                <Progress value={overallProgress} className="h-2" />
+                <span className="text-sm font-medium text-foreground">{overallProgress}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Article Header Image */}
       <div className="w-full h-64 md:h-80 lg:h-96 overflow-hidden relative">
         <img 
@@ -165,7 +188,7 @@ const Article = () => {
         {!user && (
           <div className="mt-8 p-4 bg-muted/50 rounded-lg border border-border text-center">
             <p className="text-muted-foreground text-sm">
-              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg och se vilka artiklar du har läst.
+              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg och se vilka artiklar du har läst.
             </p>
           </div>
         )}

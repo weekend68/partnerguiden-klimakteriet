@@ -39,6 +39,12 @@ Skapa 3 reflekterande frågor baserat på artikeln. Varje fråga ska:
 - Ha 4 svarsalternativ där ett är "bäst" (mest empatiskt/stöttande)
 - Fokusera på praktiska situationer från artikeln
 
+VIKTIGT FÖR SVARSALTERNATIV:
+- Alla 4 svarsalternativ ska ha UNGEFÄR SAMMA LÄNGD (15-40 ord var)
+- Det korrekta svaret får INTE alltid vara längst eller mest detaljerat
+- Variera vilken position (0-3) det korrekta svaret har mellan frågorna
+- Gör alla alternativ realistiska och trovärdiga
+
 Svara ENDAST med giltig JSON i exakt detta format:
 {
   "questions": [
