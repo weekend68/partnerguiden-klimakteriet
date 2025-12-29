@@ -24,7 +24,7 @@ export default function Congratulations() {
     }
   }, [user, isComplete, overallProgress, navigate]);
 
-  const shareText = "Jag har slutfört Relateify-kursen om klimakteriet! 13 artiklar och quiz för att bättre förstå och stötta min partner. 💪❤️";
+  const shareText = "Jag har slutfört Partnerguiden om klimakteriet! 13 artiklar och quiz för att bättre förstå och stötta min partner. 💪❤️";
   const shareUrl = window.location.origin;
 
   const handleCopyLink = async () => {
@@ -62,7 +62,7 @@ export default function Congratulations() {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="font-serif text-xl font-semibold text-foreground">
-            Relateify
+            Partnerguiden
           </Link>
           <nav className="flex items-center gap-4">
             <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
