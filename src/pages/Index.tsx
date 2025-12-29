@@ -97,7 +97,7 @@ const Index = () => {
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 text-balance animate-fade-in">
             Bli en bättre partner under klimakteriet på 10 dagar
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in stagger-1">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-[720px] mx-auto animate-fade-in stagger-1">
             En gratis 10-dagarskurs skapad för dig som partner. Lär dig de biologiska sanningarna, undvik de vanligaste kommunikationsfällorna och stärk er relation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in stagger-2">
