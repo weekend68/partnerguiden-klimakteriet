@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, CheckCircle, Heart, User, LogOut } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -83,8 +84,16 @@ const Index = () => {
       )}
 
       {/* Hero Section */}
-      <section className="bg-hero-gradient py-20 md:py-32">
-        <div className="container max-w-4xl text-center">
+      <section className="relative py-20 md:py-32 overflow-hidden">
+        {/* Background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBackground})` }}
+        />
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-background/75" />
+        
+        <div className="container max-w-4xl text-center relative z-10">
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 text-balance animate-fade-in">
             Lär dig förstå klimakteriet på 10 dagar
           </h1>
@@ -99,7 +108,7 @@ const Index = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base">
+            <Button asChild variant="outline" size="lg" className="text-base bg-background/80 backdrop-blur-sm">
               <Link to="/artiklar">
                 Se alla 13 artiklar
               </Link>
