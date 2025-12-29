@@ -62,11 +62,11 @@ export default function Congratulations() {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="font-serif text-xl font-semibold text-foreground whitespace-nowrap">
-            <span className="sm:hidden">Partnerguiden</span>
-            <span className="hidden sm:inline">Partnerguiden: Klimakteriet</span>
+            <span className="md:hidden">Partnerguiden</span>
+            <span className="hidden md:inline">Partnerguiden: Klimakteriet</span>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
               Alla artiklar
             </Link>
           </nav>
