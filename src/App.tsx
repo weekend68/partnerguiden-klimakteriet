@@ -9,6 +9,7 @@ import Articles from "./pages/Articles";
 import Article from "./pages/Article";
 import Quiz from "./pages/Quiz";
 import Auth from "./pages/Auth";
+import Congratulations from "./pages/Congratulations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/artikel/:slug" element={<Article />} />
           <Route path="/quiz/:slug" element={<Quiz />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/grattis" element={<Congratulations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
