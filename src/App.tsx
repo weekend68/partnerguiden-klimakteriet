@@ -10,6 +10,7 @@ import Article from "./pages/Article";
 import Quiz from "./pages/Quiz";
 import Auth from "./pages/Auth";
 import Congratulations from "./pages/Congratulations";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/quiz/:slug" element={<Quiz />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/grattis" element={<Congratulations />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
