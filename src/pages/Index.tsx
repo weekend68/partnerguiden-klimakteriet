@@ -95,6 +95,9 @@ const Index = () => {
                     >
                       {nextArticle.title}
                     </Link>
+                    {getArticleProgress(nextArticle.slug)?.article_read && (
+                      <CheckCircle className="inline-block ml-1.5 h-4 w-4 text-primary align-text-bottom" />
+                    )}
                   </p>
                 </div>
               )}
