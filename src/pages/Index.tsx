@@ -8,8 +8,17 @@ import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const { user, signOut } = useAuth();
-  const { articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
-  const firstArticle = articles[0];
+  const { articlesRead, quizzesCompleted, totalArticles, overallProgress, getArticleProgress } = useProgress();
+  
+  // Find the next article to read (first one where quiz is not completed)
+  const nextArticle = user 
+    ? articles.find((article) => {
+        const progress = getArticleProgress(article.slug);
+        return !progress?.quiz_completed;
+      }) || articles[0]
+    : articles[0];
+  
+  const hasProgress = user && articlesRead > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +26,7 @@ const Index = () => {
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="font-serif text-xl font-semibold text-foreground">
-            Relateify
+            Partnerguiden
           </Link>
           <nav className="flex items-center gap-4">
             <Link to="/artiklar" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -84,8 +93,8 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in stagger-2">
             <Button asChild size="lg" className="text-base">
-              <Link to={`/artikel/${firstArticle.slug}`}>
-                Börja här – läs första artikeln
+              <Link to={`/artikel/${nextArticle.slug}`}>
+                {hasProgress ? "Fortsätt läsa nästa artikel" : "Börja här – läs första artikeln"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -142,21 +151,21 @@ const Index = () => {
       <section className="py-16 bg-muted/30">
         <div className="container max-w-4xl">
           <h2 className="font-serif text-2xl md:text-3xl font-medium text-center mb-8">
-            Första artikeln: {firstArticle.title}
+            {hasProgress ? `Nästa artikel: ${nextArticle.title}` : `Första artikeln: ${nextArticle.title}`}
           </h2>
           <div className="bg-card rounded-lg shadow-card overflow-hidden">
             <img 
-              src={firstArticle.imageUrl} 
-              alt={firstArticle.imageAlt}
+              src={nextArticle.imageUrl} 
+              alt={nextArticle.imageAlt}
               className="w-full h-64 object-cover"
             />
             <div className="p-6 md:p-8">
               <p className="text-muted-foreground mb-6 text-lg">
-                {firstArticle.excerpt}
+                {nextArticle.excerpt}
               </p>
               <Button asChild>
-                <Link to={`/artikel/${firstArticle.slug}`}>
-                  Läs hela artikeln
+                <Link to={`/artikel/${nextArticle.slug}`}>
+                  {hasProgress ? "Fortsätt läsa" : "Läs hela artikeln"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -168,7 +177,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-12 border-t border-border">
         <div className="container text-center text-muted-foreground">
-          <p className="font-serif text-lg mb-2">Relateify</p>
+          <p className="font-serif text-lg mb-2">Partnerguiden: Klimakteriet</p>
           <p className="text-sm">
             Kunskap som stärker relationer under klimakteriet.
           </p>

@@ -102,9 +102,9 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-heading text-foreground">Relateify</CardTitle>
+          <CardTitle className="text-2xl font-heading text-foreground">Partnerguiden</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Logga in för att spara din framsteg
+            Logga in för att spara dina framsteg
           </CardDescription>
         </CardHeader>
         <CardContent>
