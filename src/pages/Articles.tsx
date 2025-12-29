@@ -81,7 +81,7 @@ const Articles = () => {
           Läs artiklarna i ordning eller hoppa direkt till det ämne som känns mest relevant just nu.
           {!user && (
             <span className="block mt-2">
-              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg.
+              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg.
             </span>
           )}
         </p>

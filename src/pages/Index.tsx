@@ -44,20 +44,20 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Progress Banner (if logged in and has progress) */}
-      {user && overallProgress > 0 && (
+      {/* Progress Banner (if logged in) */}
+      {user && (
         <div className="bg-primary/5 border-b border-primary/10 py-4">
           <div className="container">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-heading text-primary">{articlesRead}</p>
-                  <p className="text-xs text-muted-foreground">artiklar lästa</p>
+                  <p className="text-xs text-muted-foreground">av {totalArticles} artiklar</p>
                 </div>
                 <div className="h-8 w-px bg-border" />
                 <div className="text-center">
                   <p className="text-2xl font-heading text-primary">{quizzesCompleted}</p>
-                  <p className="text-xs text-muted-foreground">quiz klarade</p>
+                  <p className="text-xs text-muted-foreground">av {totalArticles} quiz</p>
                 </div>
               </div>
               <div className="flex-1 max-w-xs">
@@ -97,7 +97,7 @@ const Index = () => {
           </div>
           {!user && (
             <p className="text-sm text-muted-foreground mt-6 animate-fade-in stagger-3">
-              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg
+              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg
             </p>
           )}
         </div>

@@ -193,11 +193,14 @@ export default function Quiz() {
 
               {!user && (
                 <p className="text-sm text-muted-foreground mb-6">
-                  <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara din framsteg
+                  <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg
                 </p>
               )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="outline" onClick={() => navigate("/")}>
+                  Till startsidan
+                </Button>
                 <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
                   Läs artikeln igen
                 </Button>
@@ -269,7 +272,7 @@ export default function Quiz() {
                     className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors ${
                       hasAnswered
                         ? isCorrect
-                          ? "bg-primary/10 border-primary"
+                          ? "bg-success/10 border-success"
                           : isSelected
                           ? "bg-destructive/10 border-destructive"
                           : "bg-muted/50 border-border"
@@ -286,7 +289,7 @@ export default function Quiz() {
                       {option}
                     </Label>
                     {hasAnswered && isCorrect && (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      <CheckCircle2 className="h-5 w-5 text-success" />
                     )}
                     {hasAnswered && isSelected && !isCorrect && (
                       <XCircle className="h-5 w-5 text-destructive" />
