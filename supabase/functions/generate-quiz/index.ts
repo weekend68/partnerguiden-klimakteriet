@@ -11,7 +11,39 @@ serve(async (req) => {
   }
 
   try {
-    const { articleTitle, articleContent } = await req.json();
+    const body = await req.json();
+    const { articleTitle, articleContent } = body;
+
+    // Input validation
+    if (!articleTitle || typeof articleTitle !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid article title' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!articleContent || typeof articleContent !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid article content' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Enforce reasonable length limits to prevent resource exhaustion
+    if (articleTitle.length > 200) {
+      return new Response(
+        JSON.stringify({ error: 'Article title too long (max 200 characters)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (articleContent.length > 50000) {
+      return new Response(
+        JSON.stringify({ error: 'Article content too long (max 50000 characters)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
