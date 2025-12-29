@@ -109,6 +109,8 @@ export default function Quiz() {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
       setHasAnswered(false);
+      // Scroll to top for mobile users
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setQuizComplete(true);
     }
