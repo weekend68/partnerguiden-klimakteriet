@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 interface Progress {
-  article_slug: string;
+  article_id: string;
   article_read: boolean;
   quiz_completed: boolean;
   quiz_score: number | null;
@@ -23,7 +23,7 @@ export function useProgress() {
 
     const { data, error } = await supabase
       .from("user_progress")
-      .select("article_slug, article_read, quiz_completed, quiz_score")
+      .select("article_id, article_read, quiz_completed, quiz_score")
       .eq("user_id", user.id);
 
     if (error) {
@@ -38,22 +38,22 @@ export function useProgress() {
     fetchProgress();
   }, [fetchProgress]);
 
-  const markArticleRead = async (articleSlug: string) => {
+  const markArticleRead = async (articleId: string) => {
     if (!user) return { error: new Error("Not logged in") };
 
-    const existing = progress.find((p) => p.article_slug === articleSlug);
+    const existing = progress.find((p) => p.article_id === articleId);
 
     if (existing) {
       const { error } = await supabase
         .from("user_progress")
         .update({ article_read: true })
         .eq("user_id", user.id)
-        .eq("article_slug", articleSlug);
+        .eq("article_id", articleId);
 
       if (!error) {
         setProgress((prev) =>
           prev.map((p) =>
-            p.article_slug === articleSlug ? { ...p, article_read: true } : p
+            p.article_id === articleId ? { ...p, article_read: true } : p
           )
         );
       }
@@ -61,7 +61,7 @@ export function useProgress() {
     } else {
       const { error } = await supabase.from("user_progress").insert({
         user_id: user.id,
-        article_slug: articleSlug,
+        article_id: articleId,
         article_read: true,
         quiz_completed: false,
       });
@@ -69,29 +69,29 @@ export function useProgress() {
       if (!error) {
         setProgress((prev) => [
           ...prev,
-          { article_slug: articleSlug, article_read: true, quiz_completed: false, quiz_score: null },
+          { article_id: articleId, article_read: true, quiz_completed: false, quiz_score: null },
         ]);
       }
       return { error };
     }
   };
 
-  const markQuizCompleted = async (articleSlug: string, score: number) => {
+  const markQuizCompleted = async (articleId: string, score: number) => {
     if (!user) return { error: new Error("Not logged in") };
 
-    const existing = progress.find((p) => p.article_slug === articleSlug);
+    const existing = progress.find((p) => p.article_id === articleId);
 
     if (existing) {
       const { error } = await supabase
         .from("user_progress")
         .update({ quiz_completed: true, quiz_score: score })
         .eq("user_id", user.id)
-        .eq("article_slug", articleSlug);
+        .eq("article_id", articleId);
 
       if (!error) {
         setProgress((prev) =>
           prev.map((p) =>
-            p.article_slug === articleSlug
+            p.article_id === articleId
               ? { ...p, quiz_completed: true, quiz_score: score }
               : p
           )
@@ -101,7 +101,7 @@ export function useProgress() {
     } else {
       const { error } = await supabase.from("user_progress").insert({
         user_id: user.id,
-        article_slug: articleSlug,
+        article_id: articleId,
         article_read: true,
         quiz_completed: true,
         quiz_score: score,
@@ -110,15 +110,15 @@ export function useProgress() {
       if (!error) {
         setProgress((prev) => [
           ...prev,
-          { article_slug: articleSlug, article_read: true, quiz_completed: true, quiz_score: score },
+          { article_id: articleId, article_read: true, quiz_completed: true, quiz_score: score },
         ]);
       }
       return { error };
     }
   };
 
-  const getArticleProgress = (articleSlug: string) => {
-    return progress.find((p) => p.article_slug === articleSlug) || null;
+  const getArticleProgress = (articleId: string) => {
+    return progress.find((p) => p.article_id === articleId) || null;
   };
 
   const totalArticles = 13;

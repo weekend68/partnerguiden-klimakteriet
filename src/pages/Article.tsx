@@ -49,7 +49,7 @@ const Article = () => {
     fetchArticles();
   }, [slug]);
 
-  const progress = slug ? getArticleProgress(slug) : null;
+  const progress = article ? getArticleProgress(article.id) : null;
 
   const currentIndex = allArticles.findIndex(a => a.slug === slug);
   const nextArticle = allArticles[currentIndex + 1];
@@ -60,7 +60,7 @@ const Article = () => {
 
   // Mark article as read when user scrolls to bottom
   useEffect(() => {
-    if (!user || !slug || progress?.article_read) return;
+    if (!user || !article || progress?.article_read) return;
 
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight;
@@ -68,14 +68,14 @@ const Article = () => {
       
       // Mark as read when scrolled 80% of the page
       if (scrollPosition >= pageHeight * 0.8) {
-        markArticleRead(slug);
+        markArticleRead(article.id);
         window.removeEventListener("scroll", handleScroll);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [user, slug, progress?.article_read, markArticleRead]);
+  }, [user, article, progress?.article_read, markArticleRead]);
 
   // Get image URL - prefer image_url from DB, fallback to public folder
   const getImageUrl = (art: Article) => {

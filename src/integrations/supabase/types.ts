@@ -148,8 +148,8 @@ export type Database = {
       }
       user_progress: {
         Row: {
+          article_id: string
           article_read: boolean | null
-          article_slug: string
           created_at: string
           id: string
           quiz_completed: boolean | null
@@ -158,8 +158,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          article_id: string
           article_read?: boolean | null
-          article_slug: string
           created_at?: string
           id?: string
           quiz_completed?: boolean | null
@@ -168,8 +168,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          article_id?: string
           article_read?: boolean | null
-          article_slug?: string
           created_at?: string
           id?: string
           quiz_completed?: boolean | null
@@ -177,7 +177,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_progress_article"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
