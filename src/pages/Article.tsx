@@ -1,12 +1,23 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { getArticleBySlug, articles } from "@/data/articles";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, BookCheck, CheckCircle, User, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
+
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image_url: string | null;
+  image_filename: string;
+  image_alt: string | null;
+}
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -14,8 +25,33 @@ const Article = () => {
   const { user, signOut } = useAuth();
   const { getArticleProgress, markArticleRead, articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
   
-  const article = slug ? getArticleBySlug(slug) : undefined;
+  const [article, setArticle] = useState<Article | null>(null);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt")
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        setAllArticles(data);
+        const currentArticle = data.find(a => a.slug === slug);
+        setArticle(currentArticle || null);
+      }
+      setLoading(false);
+    };
+
+    fetchArticles();
+  }, [slug]);
+
   const progress = slug ? getArticleProgress(slug) : null;
+
+  const currentIndex = allArticles.findIndex(a => a.slug === slug);
+  const nextArticle = allArticles[currentIndex + 1];
+  const prevArticle = allArticles[currentIndex - 1];
 
   // Mark article as read when user scrolls to bottom
   useEffect(() => {
@@ -36,6 +72,22 @@ const Article = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [user, slug, progress?.article_read, markArticleRead]);
 
+  // Get image URL - prefer image_url from DB, fallback to public folder
+  const getImageUrl = (art: Article) => {
+    if (art.image_url) return art.image_url;
+    return `/images/${art.image_filename}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Laddar artikel...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!article) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -48,10 +100,6 @@ const Article = () => {
       </div>
     );
   }
-
-  const currentIndex = articles.findIndex(a => a.id === article.id);
-  const nextArticle = articles[currentIndex + 1];
-  const prevArticle = articles[currentIndex - 1];
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,8 +155,8 @@ const Article = () => {
       {/* Article Header Image */}
       <div className="w-full h-64 md:h-80 lg:h-96 overflow-hidden relative">
         <img 
-          src={article.imageUrl} 
-          alt={article.imageAlt}
+          src={getImageUrl(article)} 
+          alt={article.image_alt || article.title}
           className="w-full h-full object-cover"
         />
         {/* Progress badges */}
@@ -137,7 +185,7 @@ const Article = () => {
         </Link>
 
         <div className="text-sm text-muted-foreground mb-4">
-          Artikel {currentIndex + 1} av 13
+          Artikel {currentIndex + 1} av {allArticles.length}
         </div>
 
         <h1 className="font-serif text-3xl md:text-4xl font-medium mb-6 text-balance">

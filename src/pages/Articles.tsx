@@ -1,14 +1,50 @@
 import { Link } from "react-router-dom";
-import { articles } from "@/data/articles";
+import { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle, BookOpen, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  image_url: string | null;
+  image_filename: string;
+  image_alt: string | null;
+}
 
 const Articles = () => {
   const { user, signOut } = useAuth();
   const { getArticleProgress, articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
+  
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, slug, title, excerpt, image_url, image_filename, image_alt")
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        setArticles(data);
+      }
+      setLoading(false);
+    };
+
+    fetchArticles();
+  }, []);
+
+  // Get image URL - prefer image_url from DB, fallback to public folder
+  const getImageUrl = (article: Article) => {
+    if (article.image_url) return article.image_url;
+    return `/images/${article.image_filename}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +112,7 @@ const Articles = () => {
         </Link>
 
         <h1 className="font-serif text-3xl md:text-4xl font-medium mb-4">
-          Alla 13 artiklar
+          Alla {articles.length} artiklar
         </h1>
         <p className="text-muted-foreground mb-12 max-w-2xl">
           Läs artiklarna i ordning eller hoppa direkt till det ämne som känns mest relevant just nu.
@@ -87,55 +123,61 @@ const Articles = () => {
           )}
         </p>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article, index) => {
-            const progress = getArticleProgress(article.slug);
-            const isRead = progress?.article_read;
-            const quizDone = progress?.quiz_completed;
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Laddar artiklar...</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {articles.map((article, index) => {
+              const progress = getArticleProgress(article.slug);
+              const isRead = progress?.article_read;
+              const quizDone = progress?.quiz_completed;
 
-            return (
-              <Link
-                key={article.id}
-                to={`/artikel/${article.slug}`}
-                className="group bg-card rounded-lg shadow-card overflow-hidden card-hover relative"
-              >
-                {/* Progress indicators */}
-                {user && (isRead || quizDone) && (
-                  <div className="absolute top-3 right-3 flex gap-1.5 z-10">
-                    {isRead && (
-                      <div className="bg-primary/90 text-primary-foreground rounded-full p-1.5" title="Artikel läst">
-                        <BookOpen className="h-3.5 w-3.5" />
-                      </div>
-                    )}
-                    {quizDone && (
-                      <div className="bg-primary/90 text-primary-foreground rounded-full p-1.5" title="Quiz klarat">
-                        <CheckCircle className="h-3.5 w-3.5" />
-                      </div>
-                    )}
+              return (
+                <Link
+                  key={article.id}
+                  to={`/artikel/${article.slug}`}
+                  className="group bg-card rounded-lg shadow-card overflow-hidden card-hover relative"
+                >
+                  {/* Progress indicators */}
+                  {user && (isRead || quizDone) && (
+                    <div className="absolute top-3 right-3 flex gap-1.5 z-10">
+                      {isRead && (
+                        <div className="bg-primary/90 text-primary-foreground rounded-full p-1.5" title="Artikel läst">
+                          <BookOpen className="h-3.5 w-3.5" />
+                        </div>
+                      )}
+                      {quizDone && (
+                        <div className="bg-primary/90 text-primary-foreground rounded-full p-1.5" title="Quiz klarat">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="aspect-[16/9] overflow-hidden">
+                    <img 
+                      src={getImageUrl(article)} 
+                      alt={article.image_alt || article.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                   </div>
-                )}
-                <div className="aspect-[16/9] overflow-hidden">
-                  <img 
-                    src={article.imageUrl} 
-                    alt={article.imageAlt}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-5">
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Artikel {index + 1} av 13
+                  <div className="p-5">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Artikel {index + 1} av {articles.length}
+                    </div>
+                    <h2 className="font-serif text-lg font-medium mb-2 group-hover:text-primary transition-colors">
+                      {article.title}
+                    </h2>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {article.excerpt}
+                    </p>
                   </div>
-                  <h2 className="font-serif text-lg font-medium mb-2 group-hover:text-primary transition-colors">
-                    {article.title}
-                  </h2>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {article.excerpt}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );
