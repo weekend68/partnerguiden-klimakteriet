@@ -134,7 +134,7 @@ serve(async (req) => {
         const article = ARTICLE_SEQUENCE[nextArticleIndex];
         
         // Generate magic link for auto-login
-        const redirectUrl = `${BASE_URL}/artiklar/${article.slug}`;
+        const redirectUrl = `${BASE_URL}/artikel/${article.slug}`;
         console.log(`Generating magic link with redirect to: ${redirectUrl}`);
         
         const { data: magicLinkData, error: magicLinkError } = await supabase.auth.admin.generateLink({
