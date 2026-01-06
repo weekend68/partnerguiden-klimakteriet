@@ -6,8 +6,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import heroBackground from "@/assets/hero-background.jpg";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 const Index = () => {
+  useDocumentTitle(null); // Use default title
   const { user, signOut } = useAuth();
   const { articlesRead, quizzesCompleted, totalArticles, overallProgress, getArticleProgress } = useProgress();
 
