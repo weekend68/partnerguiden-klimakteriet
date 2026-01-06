@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface Article {
   id: string;
@@ -17,6 +18,7 @@ interface Article {
   image_url: string | null;
   image_filename: string;
   image_alt: string | null;
+  meta_title: string | null;
 }
 
 const Article = () => {
@@ -33,7 +35,7 @@ const Article = () => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt")
+        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt, meta_title")
         .order("sort_order", { ascending: true });
 
       if (!error && data) {
@@ -52,6 +54,9 @@ const Article = () => {
   const currentIndex = allArticles.findIndex(a => a.slug === slug);
   const nextArticle = allArticles[currentIndex + 1];
   const prevArticle = allArticles[currentIndex - 1];
+
+  // Set document title from meta_title or fallback to article title
+  useDocumentTitle(article?.meta_title || article?.title);
 
   // Mark article as read when user scrolls to bottom
   useEffect(() => {

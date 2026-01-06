@@ -6,6 +6,7 @@ import { useProgress } from "@/hooks/useProgress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface Article {
   id: string;
@@ -23,6 +24,8 @@ const Articles = () => {
   
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useDocumentTitle("Alla artiklar – Partnerguiden: Klimakteriet");
 
   useEffect(() => {
     const fetchArticles = async () => {
