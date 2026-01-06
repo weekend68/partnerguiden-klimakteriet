@@ -55,8 +55,8 @@ const Article = () => {
   const nextArticle = allArticles[currentIndex + 1];
   const prevArticle = allArticles[currentIndex - 1];
 
-  // Set document title from meta_title or fallback to article title
-  useDocumentTitle(article?.meta_title || article?.title);
+  // Generate document title automatically: Title | Site Name
+  useDocumentTitle(article?.title ? `${article.title} | Partnerguiden: Klimakteriet` : undefined);
 
   // Mark article as read when user scrolls to bottom
   useEffect(() => {

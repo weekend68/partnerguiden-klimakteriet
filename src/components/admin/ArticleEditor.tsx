@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Eye } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -36,6 +36,8 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
+  const isPublished = !!article.published_at;
+
   const handleChange = (field: keyof Article, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -47,14 +49,11 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
         .from("articles")
         .update({
           title: formData.title,
-          meta_title: formData.meta_title,
-          meta_description: formData.meta_description,
+          slug: formData.slug,
           excerpt: formData.excerpt,
           content: formData.content,
-          image_url: formData.image_url,
           image_alt: formData.image_alt,
           image_filename: formData.image_filename,
-          sort_order: formData.sort_order,
         })
         .eq("id", article.id);
 
@@ -99,12 +98,9 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
 
       <div className={showPreview ? "grid grid-cols-2 gap-6" : ""}>
         <div className="space-y-6">
-          {/* Basic Info */}
+          {/* Titel & Slug */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Grundläggande information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6 space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Titel</Label>
                 <Input
@@ -119,16 +115,23 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
                 <Input
                   id="slug"
                   value={formData.slug}
-                  disabled
-                  className="bg-muted"
+                  onChange={(e) => handleChange("slug", e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Slug kan inte ändras efter skapande
-                </p>
+                {isPublished && formData.slug !== article.slug && (
+                  <div className="flex items-center gap-2 text-amber-600 text-xs">
+                    <AlertTriangle className="h-3 w-3" />
+                    Att ändra slug på en publicerad artikel kan bryta befintliga länkar
+                  </div>
+                )}
               </div>
+            </CardContent>
+          </Card>
 
+          {/* Ingress */}
+          <Card>
+            <CardContent className="pt-6">
               <div className="grid gap-2">
-                <Label htmlFor="excerpt">Pufftext (excerpt)</Label>
+                <Label htmlFor="excerpt">Ingress</Label>
                 <Textarea
                   id="excerpt"
                   value={formData.excerpt}
@@ -136,82 +139,47 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
                   rows={3}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Visas i artikellistor och mejlutskick
-                </p>
-              </div>
-
-            </CardContent>
-          </Card>
-
-          {/* SEO */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">SEO</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="meta_title">Meta-titel</Label>
-                <Input
-                  id="meta_title"
-                  value={formData.meta_title || ""}
-                  onChange={(e) => handleChange("meta_title", e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {(formData.meta_title || "").length}/60 tecken
-                </p>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="meta_description">Meta-beskrivning</Label>
-                <Textarea
-                  id="meta_description"
-                  value={formData.meta_description || ""}
-                  onChange={(e) =>
-                    handleChange("meta_description", e.target.value)
-                  }
-                  rows={2}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {(formData.meta_description || "").length}/160 tecken
+                  Visas i artikellistor, mejl och som meta-beskrivning för sökmotorer
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Images */}
+          {/* Bild */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Bild</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="image_filename">Bildfilnamn (för mejl)</Label>
+                <Label htmlFor="image_filename">Filnamn</Label>
                 <Input
                   id="image_filename"
                   value={formData.image_filename}
                   onChange={(e) => handleChange("image_filename", e.target.value)}
+                  placeholder="article-exempel.jpg"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Fil i public/images/, t.ex. article-nar-varlden-skaver.jpg
+                  Filen ska ligga i public/images/
                 </p>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="image_alt">Bild alt-text</Label>
-                <Textarea
+                <Label htmlFor="image_alt">Alt-text</Label>
+                <Input
                   id="image_alt"
                   value={formData.image_alt || ""}
                   onChange={(e) => handleChange("image_alt", e.target.value)}
-                  rows={2}
+                  placeholder="Beskriv bilden för tillgänglighet och SEO"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Content */}
+          {/* Brödtext */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Artikelinnehåll (Markdown)</CardTitle>
+              <CardTitle className="text-lg">Brödtext</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -222,8 +190,7 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
                 placeholder="Skriv artikeln i Markdown-format..."
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Stödjer Markdown: # Rubrik, ## Underrubrik, **fetstil**,
-                *kursiv*, [länk](url), etc.
+                Markdown: ## Rubrik, **fetstil**, *kursiv*, [länk](url)
               </p>
             </CardContent>
           </Card>
