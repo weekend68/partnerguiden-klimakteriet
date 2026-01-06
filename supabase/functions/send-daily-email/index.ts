@@ -9,22 +9,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Article sequence with metadata
+// Article sequence with metadata and image filenames
 const ARTICLE_SEQUENCE = [
-  { slug: "nar-varlden-skaver", title: "Humörsvängningar - när världen skaver", excerpt: "Hur hormonell omställning påverkar vardagens filter – och hur ni som par navigerar förändringen tillsammans." },
-  { slug: "varmevallningar", title: "Värmevallningar – när värmen blir svår att hantera", excerpt: "När kroppen väcker dig mitt i natten – och hur sömnbristen påverkar allt annat." },
-  { slug: "vardagens-osynliga-tyngd", title: "Extrem trötthet - vardagens osynliga tyngd", excerpt: "Frågan 'vad ska vi äta?' kan vara droppen som får bägaren att rinna över." },
-  { slug: "narhet-pa-nya-villkor", title: "Intimitet & närhet – på nya villkor", excerpt: "När lusten förändras och beröringen blir komplicerad – så hittar ni tillbaka till varandra." },
-  { slug: "glomska-fokus", title: "Glömska & fokus – När minnet blir en sil", excerpt: "När orden försvinner mitt i meningen och kalendern blir din bästa vän." },
-  { slug: "oro-angest", title: "Oro & ångest som inte släpper taget", excerpt: "När ångesten ligger närmare ytan och stressen tar mer plats." },
-  { slug: "motivation-traning", title: "Motivation & träning – när kroppen säger nej", excerpt: "När kroppen inte längre svarar som den brukade och motivationen gömmer sig." },
-  { slug: "osynlighet-varde", title: "Osynlighet & värde – att känna sig bortglömd", excerpt: "När samhällets blick glider förbi och känslan av att inte längre räknas växer." },
-  { slug: "kropp-spegelbild", title: "Kropp & spegelbild – Den främmande spegelbilden", excerpt: "När kroppen förändras och spegelbilden känns obekant." },
-  { slug: "kommunikation", title: "Att prata när det är svårt", excerpt: "Konkreta verktyg för att kommunicera när känslorna är starka." },
-  { slug: "sandwich-generationen", title: "När ni båda har det tungt", excerpt: "Att stötta varandra när livet trycker från flera håll samtidigt." },
-  { slug: "klimakteriet-forklarat", title: "Klimakteriet förklarat", excerpt: "En guide till vad som händer i kroppen under klimakteriet." },
-  { slug: "hormonbehandling", title: "Hormonbehandling: En guide för partners", excerpt: "Vad du behöver veta om HRT – från myter till praktik." },
+  { slug: "nar-varlden-skaver", title: "Humörsvängningar - när världen skaver", excerpt: "Hur hormonell omställning påverkar vardagens filter – och hur ni som par navigerar förändringen tillsammans.", image: "article-nar-varlden-skaver.jpg" },
+  { slug: "varmevallningar", title: "Värmevallningar – när värmen blir svår att hantera", excerpt: "När kroppen väcker dig mitt i natten – och hur sömnbristen påverkar allt annat.", image: "article-varmevallningar.jpg" },
+  { slug: "vardagens-osynliga-tyngd", title: "Extrem trötthet - vardagens osynliga tyngd", excerpt: "Frågan 'vad ska vi äta?' kan vara droppen som får bägaren att rinna över.", image: "article-rummet-tvattstugan.jpg" },
+  { slug: "narhet-pa-nya-villkor", title: "Intimitet & närhet – på nya villkor", excerpt: "När lusten förändras och beröringen blir komplicerad – så hittar ni tillbaka till varandra.", image: "article-narhet-pa-nya-villkor.jpg" },
+  { slug: "glomska-fokus", title: "Glömska & fokus – När minnet blir en sil", excerpt: "När orden försvinner mitt i meningen och kalendern blir din bästa vän.", image: "article-glomska-fokus.jpg" },
+  { slug: "oro-angest", title: "Oro & ångest som inte släpper taget", excerpt: "När ångesten ligger närmare ytan och stressen tar mer plats.", image: "article-oro-angest.jpg" },
+  { slug: "motivation-traning", title: "Motivation & träning – när kroppen säger nej", excerpt: "När kroppen inte längre svarar som den brukade och motivationen gömmer sig.", image: "article-motivation-traning.jpg" },
+  { slug: "osynlighet-varde", title: "Osynlighet & värde – att känna sig bortglömd", excerpt: "När samhällets blick glider förbi och känslan av att inte längre räknas växer.", image: "article-osynlighet-varde.jpg" },
+  { slug: "kropp-spegelbild", title: "Kropp & spegelbild – Den främmande spegelbilden", excerpt: "När kroppen förändras och spegelbilden känns obekant.", image: "article-kropp-spegelbild.jpg" },
+  { slug: "kommunikation", title: "Att prata när det är svårt", excerpt: "Konkreta verktyg för att kommunicera när känslorna är starka.", image: "article-att-lyssna.jpg" },
+  { slug: "sandwich-generationen", title: "När ni båda har det tungt", excerpt: "Att stötta varandra när livet trycker från flera håll samtidigt.", image: "article-couplepause.jpg" },
+  { slug: "klimakteriet-forklarat", title: "Klimakteriet förklarat", excerpt: "En guide till vad som händer i kroppen under klimakteriet.", image: "article-hormon-kartan.jpg" },
+  { slug: "hormonbehandling", title: "Hormonbehandling: En guide för partners", excerpt: "Vad du behöver veta om HRT – från myter till praktik.", image: "article-hormonbehandling.jpg" },
 ];
+
+// Image base URL - images need to be in public/images folder
+const IMAGE_BASE_URL = "https://partnerguiden-klimakteriet.lovable.app/images";
 
 const BASE_URL = "https://partnerguiden-klimakteriet.lovable.app";
 
@@ -203,8 +206,13 @@ serve(async (req) => {
                 ${nextArticleIndex === 0 ? "Välkommen till din första artikel! 🎉" : `Fantastiskt att du fortsätter! Du är nu på dag ${nextArticleIndex + 1} av 13. 💪`}
               </p>
               
-              <!-- Article Card -->
+              <!-- Article Card with Image -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f4f0; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
+                <tr>
+                  <td>
+                    <img src="${IMAGE_BASE_URL}/${article.image}" alt="${article.title}" style="width: 100%; height: auto; display: block;" />
+                  </td>
+                </tr>
                 <tr>
                   <td style="padding: 25px;">
                     <p style="margin: 0 0 5px 0; color: #8B7355; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Dag ${nextArticleIndex + 1}</p>
@@ -238,8 +246,7 @@ serve(async (req) => {
                 Du får detta mejl för att du har registrerat dig på Partnerguiden.
               </p>
               <p style="margin: 0; color: #888; font-size: 12px;">
-                <a href="${BASE_URL}/installningar" style="color: #8B7355; text-decoration: underline;">Hantera mejlpreferenser</a> · 
-                <a href="${BASE_URL}/avregistrera?user=${pref.user_id}" style="color: #8B7355; text-decoration: underline;">Avsluta prenumeration</a>
+                <a href="${BASE_URL}/avregistrera?token=${btoa(pref.user_id)}" style="color: #8B7355; text-decoration: underline;">Avsluta prenumeration</a>
               </p>
             </td>
           </tr>
