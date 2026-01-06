@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Loader2, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Article {
   id: string;
@@ -35,11 +45,45 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   const [formData, setFormData] = useState<Article>(article);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   const isPublished = !!article.published_at;
 
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return (
+      formData.title !== article.title ||
+      formData.slug !== article.slug ||
+      formData.excerpt !== article.excerpt ||
+      formData.content !== article.content ||
+      formData.image_filename !== article.image_filename ||
+      formData.image_alt !== article.image_alt
+    );
+  }, [formData, article]);
+
+  // Warn before closing browser/tab with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const handleChange = (field: keyof Article, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+    } else {
+      onBack();
+    }
   };
 
   const handleSave = async () => {
@@ -72,9 +116,10 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="gap-2">
+        <Button variant="ghost" onClick={handleBack} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Tillbaka till listan
+          {hasUnsavedChanges && <span className="text-amber-500">•</span>}
         </Button>
         <div className="flex gap-2">
           <Button
@@ -221,6 +266,22 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
           </Card>
         )}
       </div>
+
+      {/* Unsaved changes dialog */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Osparade ändringar</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du har ändringar som inte sparats. Vill du lämna ändå?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stanna kvar</AlertDialogCancel>
+            <AlertDialogAction onClick={onBack}>Lämna utan att spara</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
