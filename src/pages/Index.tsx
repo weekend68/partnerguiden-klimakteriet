@@ -16,7 +16,7 @@ const Index = () => {
   // Find the next article to read (first one where quiz is not completed)
   const nextArticle = user
     ? articles.find((article) => {
-        const progress = getArticleProgress(article.slug);
+        const progress = getArticleProgress(article.id);
         return !progress?.quiz_completed;
       }) || articles[0]
     : articles[0];
@@ -97,7 +97,7 @@ const Index = () => {
                     >
                       {nextArticle.title}
                     </Link>
-                    {getArticleProgress(nextArticle.slug)?.article_read && (
+                    {getArticleProgress(nextArticle.id)?.article_read && (
                       <CheckCircle className="inline-block ml-1.5 h-4 w-4 text-primary align-text-bottom" />
                     )}
                   </p>

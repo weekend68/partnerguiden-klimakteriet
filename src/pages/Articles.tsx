@@ -133,7 +133,7 @@ const Articles = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {articles.map((article, index) => {
-              const progress = getArticleProgress(article.slug);
+              const progress = getArticleProgress(article.id);
               const isRead = progress?.article_read;
               const quizDone = progress?.quiz_completed;
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { articles } from "@/data/articles";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -8,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizQuestion {
   question: string;
@@ -16,13 +16,22 @@ interface QuizQuestion {
   explanation: string;
 }
 
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+}
+
 export default function Quiz() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { markQuizCompleted, overallProgress, totalArticles, articlesRead, quizzesCompleted } = useProgress();
   
-  const article = articles.find((a) => a.slug === slug);
+  const [article, setArticle] = useState<Article | null>(null);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [loadingArticle, setLoadingArticle] = useState(true);
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,8 +42,27 @@ export default function Quiz() {
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
 
+  // Fetch article from database
   useEffect(() => {
-    if (!article) return;
+    const fetchArticle = async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, slug, title, content")
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        setAllArticles(data);
+        const currentArticle = data.find(a => a.slug === slug);
+        setArticle(currentArticle || null);
+      }
+      setLoadingArticle(false);
+    };
+
+    fetchArticle();
+  }, [slug]);
+
+  useEffect(() => {
+    if (!article || loadingArticle) return;
 
     const fetchQuiz = async () => {
       try {
@@ -72,14 +100,22 @@ export default function Quiz() {
     };
 
     fetchQuiz();
-  }, [article]);
+  }, [article, loadingArticle]);
 
   // Save quiz result when complete
   useEffect(() => {
-    if (quizComplete && user && slug) {
-      markQuizCompleted(slug, score);
+    if (quizComplete && user && article) {
+      markQuizCompleted(article.id, score);
     }
-  }, [quizComplete, user, slug, score, markQuizCompleted]);
+  }, [quizComplete, user, article, score, markQuizCompleted]);
+
+  if (loadingArticle) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   if (!article) {
     return (
@@ -116,8 +152,8 @@ export default function Quiz() {
     }
   };
 
-  const currentArticleIndex = articles.findIndex((a) => a.slug === slug);
-  const nextArticle = articles[currentArticleIndex + 1];
+  const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
+  const nextArticle = allArticles[currentArticleIndex + 1];
   const isAllComplete = articlesRead === totalArticles && quizzesCompleted + 1 === totalArticles;
 
   if (loading) {
