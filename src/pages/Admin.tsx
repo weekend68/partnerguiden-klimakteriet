@@ -5,10 +5,11 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { articles } from "@/data/articles";
-import { Users, BookOpen, CheckCircle, TrendingUp, ArrowLeft, Loader2, ShieldAlert, Mail, Play, RefreshCw } from "lucide-react";
+import { ArticleAdmin } from "@/components/admin/ArticleAdmin";
+import { Users, BookOpen, CheckCircle, TrendingUp, ArrowLeft, Loader2, ShieldAlert, Mail, Play, RefreshCw, FileText, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-
 interface AdminStats {
   totalUsers: number;
   usersWithProgress: number;
@@ -283,6 +284,23 @@ export default function Admin() {
 
         <h1 className="font-serif text-3xl font-medium mb-8">Admin Dashboard</h1>
 
+        <Tabs defaultValue="stats" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="stats" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Statistik
+            </TabsTrigger>
+            <TabsTrigger value="articles" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Artiklar
+            </TabsTrigger>
+            <TabsTrigger value="email" className="gap-2">
+              <Mail className="h-4 w-4" />
+              Mejlflöde
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="stats">
         {stats && (
           <>
             {/* Overview Cards */}
@@ -416,9 +434,15 @@ export default function Admin() {
             </Card>
           </>
         )}
+          </TabsContent>
 
+          <TabsContent value="articles">
+            <ArticleAdmin />
+          </TabsContent>
+
+          <TabsContent value="email">
         {/* Email Flow Testing Section */}
-        <div className="mt-8 border-t border-border pt-8">
+        <div>
           <h2 className="font-serif text-2xl font-medium mb-6 flex items-center gap-2">
             <Mail className="h-6 w-6" />
             Mejlflöde (Admin Test)
@@ -535,6 +559,8 @@ export default function Admin() {
             </Card>
           )}
         </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
