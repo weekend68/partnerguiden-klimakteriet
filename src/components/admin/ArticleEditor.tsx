@@ -43,23 +43,24 @@ interface ArticleEditorProps {
 
 export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   const [formData, setFormData] = useState<Article>(article);
+  const [savedData, setSavedData] = useState<Article>(article);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   const isPublished = !!article.published_at;
 
-  // Check if there are unsaved changes
+  // Check if there are unsaved changes (compare to last saved state)
   const hasUnsavedChanges = useMemo(() => {
     return (
-      formData.title !== article.title ||
-      formData.slug !== article.slug ||
-      formData.excerpt !== article.excerpt ||
-      formData.content !== article.content ||
-      formData.image_filename !== article.image_filename ||
-      formData.image_alt !== article.image_alt
+      formData.title !== savedData.title ||
+      formData.slug !== savedData.slug ||
+      formData.excerpt !== savedData.excerpt ||
+      formData.content !== savedData.content ||
+      formData.image_filename !== savedData.image_filename ||
+      formData.image_alt !== savedData.image_alt
     );
-  }, [formData, article]);
+  }, [formData, savedData]);
 
   // Warn before closing browser/tab with unsaved changes
   useEffect(() => {
@@ -103,6 +104,7 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
 
       if (error) throw error;
 
+      setSavedData(formData);
       toast.success("Artikeln sparad!");
       onSave(formData);
     } catch (err) {
