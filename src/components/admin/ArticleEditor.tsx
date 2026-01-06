@@ -143,7 +143,7 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
 
       <div className={showPreview ? "grid grid-cols-2 gap-6" : ""}>
         <div className="space-y-6">
-          {/* Titel & Slug */}
+          {/* Titel, Slug & Ingress */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="grid gap-2">
@@ -169,22 +169,16 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Ingress */}
-          <Card>
-            <CardContent className="pt-6">
               <div className="grid gap-2">
                 <Label htmlFor="excerpt">Ingress</Label>
-                <Textarea
+                <Input
                   id="excerpt"
                   value={formData.excerpt}
                   onChange={(e) => handleChange("excerpt", e.target.value)}
-                  rows={3}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Visas i artikellistor, mejl och som meta-beskrivning för sökmotorer
+                  Visas i artikellistor, mejl och som meta-beskrivning
                 </p>
               </div>
             </CardContent>
