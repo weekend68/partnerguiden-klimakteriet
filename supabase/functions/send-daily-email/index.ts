@@ -134,11 +134,14 @@ serve(async (req) => {
         const article = ARTICLE_SEQUENCE[nextArticleIndex];
         
         // Generate magic link for auto-login
+        const redirectUrl = `${BASE_URL}/artiklar/${article.slug}`;
+        console.log(`Generating magic link with redirect to: ${redirectUrl}`);
+        
         const { data: magicLinkData, error: magicLinkError } = await supabase.auth.admin.generateLink({
           type: "magiclink",
           email: userEmail,
           options: {
-            redirectTo: `${BASE_URL}/artiklar/${article.slug}`,
+            redirectTo: redirectUrl,
           },
         });
 
@@ -147,7 +150,24 @@ serve(async (req) => {
           continue;
         }
 
-        const magicLink = magicLinkData.properties?.action_link || `${BASE_URL}/artiklar/${article.slug}`;
+        // The action_link from Supabase contains the magic link with token
+        // We need to ensure it includes the redirect_to parameter
+        let magicLink = magicLinkData.properties?.action_link;
+        
+        if (magicLink) {
+          console.log(`Generated magic link: ${magicLink}`);
+          // Verify the redirect is included, if not append it
+          if (!magicLink.includes('redirect_to=')) {
+            const separator = magicLink.includes('?') ? '&' : '?';
+            magicLink = `${magicLink}${separator}redirect_to=${encodeURIComponent(redirectUrl)}`;
+          }
+        } else {
+          // Fallback to direct link (user won't be auto-logged in)
+          magicLink = redirectUrl;
+          console.log(`No magic link generated, using direct link: ${magicLink}`);
+        }
+        
+        console.log(`Final link in email: ${magicLink}`);
 
         // Send email with Duolingo-style encouraging tone
         const emailResult = await resend.emails.send({
