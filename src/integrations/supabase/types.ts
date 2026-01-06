@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          image_alt: string | null
+          image_filename: string
+          image_url: string | null
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          excerpt: string
+          id?: string
+          image_alt?: string | null
+          image_filename: string
+          image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          excerpt?: string
+          id?: string
+          image_alt?: string | null
+          image_filename?: string
+          image_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_log: {
         Row: {
           article_index: number

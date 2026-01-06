@@ -9,105 +9,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Article sequence - single source of truth for email content
-// When updating articles, change this data and it will reflect in emails
-const ARTICLE_SEQUENCE = [
-  { 
-    slug: "nar-varlden-skaver", 
-    title: "Humörsvängningar - när världen skaver", 
-    excerpt: "Hur hormonell omställning påverkar vardagens filter – och hur ni som par navigerar förändringen tillsammans.", 
-    image: "article-nar-varlden-skaver.jpg" 
-  },
-  { 
-    slug: "varmevallningar", 
-    title: "Värmevallningar – när värmen blir svår att hantera", 
-    excerpt: "När kroppen väcker dig mitt i natten – och hur sömnbristen påverkar allt annat.", 
-    image: "article-varmevallningar.jpg" 
-  },
-  { 
-    slug: "vardagens-osynliga-tyngd", 
-    title: "Extrem trötthet - vardagens osynliga tyngd", 
-    excerpt: "Frågan 'vad ska vi äta?' kan vara droppen som får bägaren att rinna över.", 
-    image: "article-rummet-tvattstugan.jpg" 
-  },
-  { 
-    slug: "narhet-pa-nya-villkor", 
-    title: "Intimitet & närhet – på nya villkor", 
-    excerpt: "När lusten förändras och beröringen blir komplicerad – så hittar ni tillbaka till varandra.", 
-    image: "article-narhet-pa-nya-villkor.jpg" 
-  },
-  { 
-    slug: "glomska-fokus", 
-    title: "Glömska & fokus – När minnet blir en sil", 
-    excerpt: "När orden försvinner mitt i meningen och kalendern blir din bästa vän.", 
-    image: "article-glomska-fokus.jpg" 
-  },
-  { 
-    slug: "oro-angest", 
-    title: "Oro & ångest som inte släpper taget", 
-    excerpt: "När ångesten ligger närmare ytan och stressen tar mer plats.", 
-    image: "article-oro-angest.jpg" 
-  },
-  { 
-    slug: "motivation-traning", 
-    title: "Motivation & träning – när kroppen säger nej", 
-    excerpt: "När kroppen inte längre svarar som den brukade och motivationen gömmer sig.", 
-    image: "article-motivation-traning.jpg" 
-  },
-  { 
-    slug: "osynlighet-varde", 
-    title: "Osynlighet & värde – att känna sig bortglömd", 
-    excerpt: "När samhällets blick glider förbi och känslan av att inte längre räknas växer.", 
-    image: "article-osynlighet-varde.jpg" 
-  },
-  { 
-    slug: "kropp-spegelbild", 
-    title: "Kropp & spegelbild – Den främmande spegelbilden", 
-    excerpt: "När kroppen förändras och spegelbilden känns obekant.", 
-    image: "article-kropp-spegelbild.jpg" 
-  },
-  { 
-    slug: "kommunikation", 
-    title: "Att prata när det är svårt", 
-    excerpt: "Konkreta verktyg för att kommunicera när känslorna är starka.", 
-    image: "article-att-lyssna.jpg" 
-  },
-  { 
-    slug: "sandwich-generationen", 
-    title: "När ni båda har det tungt", 
-    excerpt: "Att stötta varandra när livet trycker från flera håll samtidigt.", 
-    image: "article-couplepause.jpg" 
-  },
-  { 
-    slug: "klimakteriet-forklarat", 
-    title: "Klimakteriet förklarat", 
-    excerpt: "En guide till vad som händer i kroppen under klimakteriet.", 
-    image: "article-hormon-kartan.jpg" 
-  },
-  { 
-    slug: "hormonbehandling", 
-    title: "Hormonbehandling: En guide för partners", 
-    excerpt: "Vad du behöver veta om HRT – från myter till praktik.", 
-    image: "article-hormonbehandling.jpg" 
-  },
-];
-
-const TOTAL_ARTICLES = ARTICLE_SEQUENCE.length;
-
 // Image base URL - images need to be in public/images folder
 const IMAGE_BASE_URL = "https://partnerguiden-klimakteriet.lovable.app/images";
 
 const BASE_URL = "https://partnerguiden-klimakteriet.lovable.app";
 
+interface ArticleData {
+  slug: string;
+  title: string;
+  excerpt: string;
+  image_filename: string;
+  sort_order: number;
+}
+
 // Helper to generate email content based on progress
-function getProgressMessage(articleIndex: number, isLastArticle: boolean, displayName: string): string {
+function getProgressMessage(articleIndex: number, isLastArticle: boolean, totalArticles: number, displayName: string): string {
   if (articleIndex === 0) {
     return "Välkommen till din första artikel! 🎉";
   }
   if (isLastArticle) {
-    return `🎊 Grattis ${displayName}! Du har nått sista artikeln i serien – dag ${articleIndex + 1} av ${TOTAL_ARTICLES}. Det här är en fantastisk prestation!`;
+    return `🎊 Grattis ${displayName}! Du har nått sista artikeln i serien – dag ${articleIndex + 1} av ${totalArticles}. Det här är en fantastisk prestation!`;
   }
-  return `Fantastiskt att du fortsätter! Du är nu på dag ${articleIndex + 1} av ${TOTAL_ARTICLES}. 💪`;
+  return `Fantastiskt att du fortsätter! Du är nu på dag ${articleIndex + 1} av ${totalArticles}. 💪`;
 }
 
 function getFooterMessage(articleIndex: number, isLastArticle: boolean): string {
@@ -135,9 +58,30 @@ serve(async (req) => {
     
     console.log(`Running email job. Admin test: ${isAdminTest}`);
 
+    // Fetch articles from database (sorted by sort_order)
+    const { data: articlesData, error: articlesError } = await supabase
+      .from("articles")
+      .select("slug, title, excerpt, image_filename, sort_order")
+      .order("sort_order", { ascending: true });
+
+    if (articlesError) {
+      console.error("Error fetching articles:", articlesError);
+      throw articlesError;
+    }
+
+    if (!articlesData || articlesData.length === 0) {
+      console.log("No articles found in database");
+      return new Response(JSON.stringify({ message: "No articles in database" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const ARTICLE_SEQUENCE: ArticleData[] = articlesData;
+    const TOTAL_ARTICLES = ARTICLE_SEQUENCE.length;
+
+    console.log(`Loaded ${TOTAL_ARTICLES} articles from database`);
+
     // Get users who should receive emails
-    // For admin test: only get admin users
-    // For production: get users based on their frequency preference and journey_start_date
     let usersQuery = supabase
       .from("user_preferences")
       .select("user_id, email_frequency, skip_weekends, journey_start_date, email_enabled")
@@ -244,18 +188,15 @@ serve(async (req) => {
         }
 
         // The action_link from Supabase contains the magic link with token
-        // We need to ensure it includes the redirect_to parameter
         let magicLink = magicLinkData.properties?.action_link;
         
         if (magicLink) {
           console.log(`Generated magic link: ${magicLink}`);
-          // Verify the redirect is included, if not append it
           if (!magicLink.includes('redirect_to=')) {
             const separator = magicLink.includes('?') ? '&' : '?';
             magicLink = `${magicLink}${separator}redirect_to=${encodeURIComponent(redirectUrl)}`;
           }
         } else {
-          // Fallback to direct link (user won't be auto-logged in)
           magicLink = redirectUrl;
           console.log(`No magic link generated, using direct link: ${magicLink}`);
         }
@@ -263,7 +204,7 @@ serve(async (req) => {
         console.log(`Final link in email: ${magicLink}`);
 
         // Generate dynamic content based on progress
-        const progressMessage = getProgressMessage(nextArticleIndex, isLastArticle, displayName);
+        const progressMessage = getProgressMessage(nextArticleIndex, isLastArticle, TOTAL_ARTICLES, displayName);
         const footerMessage = getFooterMessage(nextArticleIndex, isLastArticle);
         const subjectPrefix = isLastArticle ? "🎊" : "📖";
         const subjectSuffix = isLastArticle ? " (Sista artikeln!)" : "";
@@ -306,7 +247,7 @@ serve(async (req) => {
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f4f0; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
                 <tr>
                   <td>
-                    <img src="${IMAGE_BASE_URL}/${article.image}" alt="${article.title}" style="width: 100%; height: auto; display: block;" />
+                    <img src="${IMAGE_BASE_URL}/${article.image_filename}" alt="${article.title}" style="width: 100%; height: auto; display: block;" />
                   </td>
                 </tr>
                 <tr>
