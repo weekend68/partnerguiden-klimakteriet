@@ -1,12 +1,27 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Edit, FileText, RefreshCw } from "lucide-react";
+import { Loader2, FileText, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableArticleItem } from "./SortableArticleItem";
 
-interface Article {
+export interface Article {
   id: string;
   slug: string;
   title: string;
@@ -30,6 +45,14 @@ interface ArticleListProps {
 export function ArticleList({ onEditArticle }: ArticleListProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -46,6 +69,51 @@ export function ArticleList({ onEditArticle }: ArticleListProps) {
       toast.error("Kunde inte hämta artiklar");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = articles.findIndex((a) => a.id === active.id);
+    const newIndex = articles.findIndex((a) => a.id === over.id);
+
+    const newArticles = arrayMove(articles, oldIndex, newIndex);
+    
+    // Update local state immediately for responsive UI
+    const updatedArticles = newArticles.map((article, index) => ({
+      ...article,
+      sort_order: index,
+    }));
+    setArticles(updatedArticles);
+
+    // Save to database
+    setSaving(true);
+    try {
+      const updates = updatedArticles.map((article) => ({
+        id: article.id,
+        sort_order: article.sort_order,
+      }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from("articles")
+          .update({ sort_order: update.sort_order })
+          .eq("id", update.id);
+
+        if (error) throw error;
+      }
+
+      toast.success("Artikelordning uppdaterad");
+    } catch (err) {
+      console.error("Error updating article order:", err);
+      toast.error("Kunde inte spara ny ordning");
+      // Revert on error
+      fetchArticles();
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -80,47 +148,38 @@ export function ArticleList({ onEditArticle }: ArticleListProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">
           {articles.length} artiklar i databasen
+          {saving && <span className="text-sm text-muted-foreground ml-2">(sparar...)</span>}
         </h2>
-        <Button variant="outline" onClick={fetchArticles} className="gap-2">
+        <Button variant="outline" onClick={fetchArticles} className="gap-2" disabled={saving}>
           <RefreshCw className="h-4 w-4" />
           Uppdatera
         </Button>
       </div>
 
-      <div className="space-y-2">
-        {articles.map((article) => (
-          <Card
-            key={article.id}
-            className="hover:bg-muted/50 transition-colors cursor-pointer"
-            onClick={() => onEditArticle(article)}
-          >
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline" className="shrink-0">
-                      #{article.sort_order + 1}
-                    </Badge>
-                    <h3 className="font-medium truncate">{article.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {article.excerpt}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Slug: {article.slug} • Uppdaterad:{" "}
-                    {new Date(article.updated_at).toLocaleDateString("sv-SE")}
-                  </p>
-                </div>
-                <Button variant="ghost" size="icon" className="shrink-0 ml-4">
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Dra och släpp för att ändra ordning på artiklarna.
+      </p>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={articles.map((a) => a.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {articles.map((article) => (
+              <SortableArticleItem
+                key={article.id}
+                article={article}
+                onEdit={onEditArticle}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
-
-export type { Article };
