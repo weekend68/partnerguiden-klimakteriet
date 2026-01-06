@@ -26,7 +26,7 @@ const ARTICLE_SEQUENCE = [
   { slug: "hormonbehandling", title: "Hormonbehandling: En guide för partners", excerpt: "Vad du behöver veta om HRT – från myter till praktik." },
 ];
 
-const BASE_URL = "https://relateify.lovable.app";
+const BASE_URL = "https://partnerguiden-klimakteriet.lovable.app";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -171,7 +171,7 @@ serve(async (req) => {
 
         // Send email with Duolingo-style encouraging tone
         const emailResult = await resend.emails.send({
-          from: "Relateify <onboarding@resend.dev>",
+          from: "Partnerguiden <onboarding@resend.dev>",
           to: [userEmail],
           subject: `📖 Dag ${nextArticleIndex + 1}: ${article.title}`,
           html: `
@@ -189,7 +189,7 @@ serve(async (req) => {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #8B7355 0%, #A0876B 100%); padding: 30px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Relateify</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Partnerguiden: Klimakteriet</h1>
               <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Din resa genom klimakteriet – tillsammans</p>
             </td>
           </tr>
@@ -235,7 +235,7 @@ serve(async (req) => {
           <tr>
             <td style="background-color: #f8f4f0; padding: 25px 30px; text-align: center; border-top: 1px solid #e8e0d8;">
               <p style="margin: 0 0 10px 0; color: #888; font-size: 12px;">
-                Du får detta mejl för att du har registrerat dig på Relateify.
+                Du får detta mejl för att du har registrerat dig på Partnerguiden.
               </p>
               <p style="margin: 0; color: #888; font-size: 12px;">
                 <a href="${BASE_URL}/installningar" style="color: #8B7355; text-decoration: underline;">Hantera mejlpreferenser</a> · 
