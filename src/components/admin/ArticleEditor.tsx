@@ -140,17 +140,6 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
                 </p>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="sort_order">Ordning i mejlsekvens</Label>
-                <Input
-                  id="sort_order"
-                  type="number"
-                  value={formData.sort_order}
-                  onChange={(e) =>
-                    handleChange("sort_order", parseInt(e.target.value) || 0)
-                  }
-                />
-              </div>
             </CardContent>
           </Card>
 
