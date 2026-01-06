@@ -15,33 +15,33 @@ serve(async (req) => {
     const { articleTitle, articleContent } = body;
 
     // Input validation
-    if (!articleTitle || typeof articleTitle !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Invalid article title' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!articleTitle || typeof articleTitle !== "string") {
+      return new Response(JSON.stringify({ error: "Invalid article title" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    if (!articleContent || typeof articleContent !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Invalid article content' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!articleContent || typeof articleContent !== "string") {
+      return new Response(JSON.stringify({ error: "Invalid article content" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Enforce reasonable length limits to prevent resource exhaustion
     if (articleTitle.length > 200) {
-      return new Response(
-        JSON.stringify({ error: 'Article title too long (max 200 characters)' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: "Article title too long (max 200 characters)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (articleContent.length > 50000) {
-      return new Response(
-        JSON.stringify({ error: 'Article content too long (max 50000 characters)' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: "Article content too long (max 50000 characters)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -72,9 +72,8 @@ Skapa 5 reflekterande frågor baserat på artikeln. Varje fråga ska:
 - Fokusera på praktiska situationer från artikeln
 
 VIKTIGT FÖR SVARSALTERNATIV:
-- Alla 4 svarsalternativ ska ha UNGEFÄR SAMMA LÄNGD (15-40 ord var)
-- Det korrekta svaret får INTE alltid vara längst eller mest detaljerat
-- Variera vilken position (0-3) det korrekta svaret har mellan frågorna
+- Alla 4 svarsalternativ ska ha UNGEFÄR SAMMA LÄNGD (5-20 ord var)
+- Positionen på det korrekta svaret måste variera 
 - Gör alla alternativ realistiska och trovärdiga
 
 Svara ENDAST med giltig JSON i exakt detta format:
@@ -83,16 +82,16 @@ Svara ENDAST med giltig JSON i exakt detta format:
     {
       "question": "Frågan här",
       "options": ["Alternativ A", "Alternativ B", "Alternativ C", "Alternativ D"],
-      "correctIndex": 0,
+      "correctIndex": x,
       "explanation": "Kort förklaring varför detta svar är bäst"
     }
   ]
-}`
+}`,
           },
           {
             role: "user",
-            content: `Artikel: "${articleTitle}"\n\nInnehåll:\n${articleContent.substring(0, 3000)}`
-          }
+            content: `Artikel: "${articleTitle}"\n\nInnehåll:\n${articleContent.substring(0, 3000)}`,
+          },
         ],
       }),
     });
@@ -100,7 +99,7 @@ Svara ENDAST med giltig JSON i exakt detta format:
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "För många förfrågningar, vänta en stund." }), {
           status: 429,
@@ -134,12 +133,9 @@ Svara ENDAST med giltig JSON i exakt detta format:
     });
   } catch (error) {
     console.error("Error generating quiz:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
