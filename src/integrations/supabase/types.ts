@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_log: {
+        Row: {
+          article_index: number
+          article_slug: string
+          error_message: string | null
+          id: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          article_index: number
+          article_slug: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          article_index?: number
+          article_slug?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -29,6 +59,39 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          email_frequency: string
+          id: string
+          journey_start_date: string
+          skip_weekends: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          journey_start_date?: string
+          skip_weekends?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          email_frequency?: string
+          id?: string
+          journey_start_date?: string
+          skip_weekends?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
