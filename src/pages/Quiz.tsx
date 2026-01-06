@@ -102,9 +102,9 @@ export default function Quiz() {
     fetchQuiz();
   }, [article, loadingArticle]);
 
-  // Save quiz result when complete
+  // Save quiz result when complete (only if passed with at least 3/5)
   useEffect(() => {
-    if (quizComplete && user && article) {
+    if (quizComplete && user && article && score >= 3) {
       markQuizCompleted(article.id, score);
     }
   }, [quizComplete, user, article, score, markQuizCompleted]);
@@ -154,7 +154,8 @@ export default function Quiz() {
 
   const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
   const nextArticle = allArticles[currentArticleIndex + 1];
-  const isAllComplete = articlesRead === totalArticles && quizzesCompleted + 1 === totalArticles;
+  const passed = score >= 3;
+  const isAllComplete = passed && articlesRead === totalArticles && quizzesCompleted + 1 === totalArticles;
 
   if (loading) {
     return (
@@ -210,20 +211,26 @@ export default function Quiz() {
         <div className="container max-w-2xl mx-auto px-4 py-12">
           <Card className="bg-card border-border">
             <CardContent className="p-8 text-center">
-              <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-6" />
-              <h2 className="text-2xl font-heading text-foreground mb-4">Quiz avklarat!</h2>
+              {passed ? (
+                <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-6" />
+              ) : (
+                <XCircle className="h-16 w-16 text-destructive mx-auto mb-6" />
+              )}
+              <h2 className="text-2xl font-heading text-foreground mb-4">
+                {passed ? "Quiz godkänt!" : "Inte godkänt"}
+              </h2>
               <p className="text-4xl font-heading text-primary mb-2">
                 {score} / {questions.length}
               </p>
               <p className="text-muted-foreground mb-8">
-                {percentage >= 80
-                  ? "Fantastiskt! Du har verkligen förstått innehållet."
-                  : percentage >= 50
-                  ? "Bra jobbat! Läs gärna artikeln igen för att fördjupa förståelsen."
-                  : "Tack för att du försökte! Artikeln innehåller mycket bra information att ta del av."}
+                {passed
+                  ? percentage >= 80
+                    ? "Fantastiskt! Du har verkligen förstått innehållet."
+                    : "Bra jobbat! Du klarade gränsen på 3 rätt."
+                  : "Du behöver minst 3 rätt för att klara quizet. Läs artikeln igen och försök på nytt!"}
               </p>
 
-              {user && (
+              {user && passed && (
                 <p className="text-sm text-muted-foreground mb-6">
                   Din framsteg: {overallProgress}% av kursen avklarad
                 </p>
@@ -236,26 +243,40 @@ export default function Quiz() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="outline" onClick={() => navigate("/")}>
-                  Till startsidan
-                </Button>
-                <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
-                  Läs artikeln igen
-                </Button>
-                {isAllComplete ? (
-                  <Button onClick={() => navigate("/grattis")}>
-                    Se ditt resultat
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : nextArticle ? (
-                  <Button onClick={() => navigate(`/artikel/${nextArticle.slug}`)}>
-                    Nästa artikel
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                {!passed ? (
+                  <>
+                    <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
+                      Läs artikeln igen
+                    </Button>
+                    <Button onClick={() => window.location.reload()}>
+                      Försök igen
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </>
                 ) : (
-                  <Button onClick={() => navigate("/artiklar")}>
-                    Alla artiklar
-                  </Button>
+                  <>
+                    <Button variant="outline" onClick={() => navigate("/")}>
+                      Till startsidan
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
+                      Läs artikeln igen
+                    </Button>
+                    {isAllComplete ? (
+                      <Button onClick={() => navigate("/grattis")}>
+                        Se ditt resultat
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    ) : nextArticle ? (
+                      <Button onClick={() => navigate(`/artikel/${nextArticle.slug}`)}>
+                        Nästa artikel
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button onClick={() => navigate("/artiklar")}>
+                        Alla artiklar
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </CardContent>
