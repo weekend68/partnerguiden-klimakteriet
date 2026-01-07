@@ -2,12 +2,13 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, BookOpen, CheckCircle, Heart, User, LogOut } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import heroBackground from "@/assets/hero-background.jpg";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import Header from "@/components/Header";
 
 interface Article {
   id: string;
@@ -66,42 +67,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-16">
-          <Link to="/" className="font-serif text-lg sm:text-xl font-semibold text-foreground leading-tight">
-            <span className="sm:hidden">
-              Partnerguiden:
-              <br />
-              Klimakteriet
-            </span>
-            <span className="hidden sm:inline">Partnerguiden: Klimakteriet </span>
-          </Link>
-          <nav className="flex items-center gap-2 sm:gap-4">
-            <Link
-              to="/artiklar"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-            >
-              Alla artiklar
-            </Link>
-            {user ? (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <span className="text-sm text-muted-foreground hidden md:inline">{user.email}</span>
-                <Button variant="ghost" size="sm" onClick={() => signOut()}>
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <Button asChild variant="outline" size="sm">
-                <Link to="/auth">
-                  <User className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Logga in</span>
-                </Link>
-              </Button>
-            )}
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Progress Banner (if logged in) */}
       {user && (
