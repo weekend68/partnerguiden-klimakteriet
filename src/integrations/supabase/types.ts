@@ -120,7 +120,6 @@ export type Database = {
           email_frequency: string
           id: string
           journey_start_date: string
-          skip_weekends: boolean
           updated_at: string
           user_id: string
         }
@@ -130,7 +129,6 @@ export type Database = {
           email_frequency?: string
           id?: string
           journey_start_date?: string
-          skip_weekends?: boolean
           updated_at?: string
           user_id: string
         }
@@ -140,7 +138,6 @@ export type Database = {
           email_frequency?: string
           id?: string
           journey_start_date?: string
-          skip_weekends?: boolean
           updated_at?: string
           user_id?: string
         }
