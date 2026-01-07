@@ -84,7 +84,7 @@ serve(async (req) => {
     // Get users who should receive emails
     let usersQuery = supabase
       .from("user_preferences")
-      .select("user_id, email_frequency, skip_weekends, journey_start_date, email_enabled")
+      .select("user_id, email_frequency, journey_start_date, email_enabled")
       .eq("email_enabled", true);
 
     const { data: preferences, error: prefError } = await usersQuery;
