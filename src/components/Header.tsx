@@ -16,11 +16,7 @@ const Header = () => {
         return;
       }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", user.id)
-        .single();
+      const { data } = await supabase.from("profiles").select("display_name").eq("id", user.id).single();
 
       setDisplayName(data?.display_name || null);
     };
@@ -51,9 +47,9 @@ const Header = () => {
               <span className="text-sm text-muted-foreground max-w-[120px] sm:max-w-[160px] truncate">
                 {displayName || user.email?.split("@")[0]}
               </span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-7 w-7 rounded-full hover:bg-muted"
                 onClick={() => signOut()}
               >
@@ -63,8 +59,8 @@ const Header = () => {
           ) : (
             <Button asChild variant="outline" size="sm" className="rounded-full">
               <Link to="/auth">
-                <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Logga in</span>
+                <User className="h-4 w-4 sm:mr-2" />
               </Link>
             </Button>
           )}
