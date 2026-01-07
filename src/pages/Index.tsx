@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { articles } from "@/data/articles";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, BookOpen, CheckCircle, Heart, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
@@ -8,10 +9,41 @@ import { Progress } from "@/components/ui/progress";
 import heroBackground from "@/assets/hero-background.jpg";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  image_filename: string;
+  image_url: string | null;
+  image_alt: string | null;
+}
+
 const Index = () => {
   useDocumentTitle(null); // Use default title
   const { user, signOut } = useAuth();
   const { articlesRead, quizzesCompleted, totalArticles, overallProgress, getArticleProgress } = useProgress();
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch articles from database in correct sort order
+  useEffect(() => {
+    const fetchArticles = async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("id, slug, title, excerpt, image_filename, image_url, image_alt")
+        .order("sort_order", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching articles:", error);
+      } else {
+        setArticles(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchArticles();
+  }, []);
 
   // Find the next article to read (first one where quiz is not completed)
   const nextArticle = user
@@ -190,7 +222,11 @@ const Index = () => {
             {hasProgress ? `Nästa artikel: ${nextArticle.title}` : `Första artikeln: ${nextArticle.title}`}
           </h2>
           <div className="bg-card rounded-lg shadow-card overflow-hidden">
-            <img src={nextArticle.imageUrl} alt={nextArticle.imageAlt} className="w-full h-64 object-cover" />
+            <img 
+              src={nextArticle.image_url || `/images/${nextArticle.image_filename}`} 
+              alt={nextArticle.image_alt || nextArticle.title} 
+              className="w-full h-64 object-cover" 
+            />
             <div className="p-6 md:p-8">
               <p className="text-muted-foreground mb-6 text-lg">{nextArticle.excerpt}</p>
               <Button asChild>
