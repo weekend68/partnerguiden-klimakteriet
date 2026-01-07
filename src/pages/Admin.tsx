@@ -6,10 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { articles } from "@/data/articles";
 import { ArticleAdmin } from "@/components/admin/ArticleAdmin";
 import { Users, BookOpen, CheckCircle, TrendingUp, ArrowLeft, Loader2, ShieldAlert, Mail, Play, RefreshCw, FileText, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+
+interface ArticleTitleMap {
+  [slug: string]: string;
+}
 interface AdminStats {
   totalUsers: number;
   usersWithProgress: number;
@@ -45,6 +48,7 @@ export default function Admin() {
   const [emailLog, setEmailLog] = useState<EmailLogEntry[]>([]);
   const [emailLoading, setEmailLoading] = useState(false);
   const [triggerLoading, setTriggerLoading] = useState(false);
+  const [articleTitles, setArticleTitles] = useState<ArticleTitleMap>({});
 
   useEffect(() => {
     if (authLoading || adminLoading) return;
@@ -119,8 +123,23 @@ export default function Admin() {
       }
     };
 
+    const fetchArticleTitles = async () => {
+      const { data } = await supabase
+        .from("articles")
+        .select("slug, title");
+      
+      if (data) {
+        const titleMap: ArticleTitleMap = {};
+        data.forEach((article) => {
+          titleMap[article.slug] = article.title;
+        });
+        setArticleTitles(titleMap);
+      }
+    };
+
     fetchStats();
     fetchEmailData();
+    fetchArticleTitles();
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const enableEmailFlow = async () => {
@@ -214,8 +233,7 @@ export default function Admin() {
   };
 
   const getArticleTitle = (slug: string) => {
-    const article = articles.find((a) => a.slug === slug);
-    return article?.title || slug;
+    return articleTitles[slug] || slug;
   };
 
   if (authLoading || adminLoading || loading) {
