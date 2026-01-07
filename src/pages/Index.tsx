@@ -55,6 +55,15 @@ const Index = () => {
 
   const hasProgress = user && articlesRead > 0;
 
+  // Show loading state while fetching articles
+  if (loading || !articles.length) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Laddar...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
