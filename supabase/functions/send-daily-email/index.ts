@@ -10,9 +10,9 @@ const corsHeaders = {
 };
 
 // Image base URL - images need to be in public/images folder
-const IMAGE_BASE_URL = "https://partnerguiden-klimakteriet.lovable.app/images";
+const IMAGE_BASE_URL = "https://partnerguiden.moller-co.se/images";
 
-const BASE_URL = "https://partnerguiden-klimakteriet.lovable.app";
+const BASE_URL = "https://partnerguiden.moller-co.se";
 
 interface ArticleData {
   slug: string;
@@ -201,7 +201,7 @@ serve(async (req) => {
 
         // Send email with Duolingo-style encouraging tone
         const emailResult = await resend.emails.send({
-          from: "Partnerguiden: Klimakteriet <onboarding@resend.dev>",
+          from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.moller-co.se>",
           to: [userEmail],
           subject: `${subjectPrefix} Dag ${nextArticleIndex + 1}: ${article.title}${subjectSuffix}`,
           html: `
