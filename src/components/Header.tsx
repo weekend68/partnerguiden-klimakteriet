@@ -59,8 +59,8 @@ const Header = () => {
           ) : (
             <Button asChild variant="outline" size="sm" className="rounded-full">
               <Link to="/auth">
-                <span className="hidden sm:inline">Logga in</span>
                 <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logga in</span>
               </Link>
             </Button>
           )}
