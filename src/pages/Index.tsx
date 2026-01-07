@@ -91,8 +91,8 @@ const Index = () => {
                 <div className="text-center sm:text-left">
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Nästa:</span>{" "}
-                    <Link 
-                      to={`/artikel/${nextArticle.slug}`} 
+                    <Link
+                      to={`/artikel/${nextArticle.slug}`}
                       className="text-primary hover:underline truncate inline-block max-w-[250px] sm:max-w-none align-bottom"
                     >
                       {nextArticle.title}
@@ -120,10 +120,10 @@ const Index = () => {
 
         <div className="container max-w-4xl text-center relative z-10">
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-foreground mb-6 text-balance animate-fade-in">
-            Bli en bättre partner under klimakteriet på 10 dagar
+            Bli en bättre partner under klimakteriet på två veckor
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-[720px] mx-auto animate-fade-in stagger-1">
-            En gratis 10-dagarskurs skapad för dig som partner. Lär dig de biologiska sanningarna, undvik de vanligaste
+            En gratis kurs skapad för dig som partner. Lär dig de biologiska sanningarna, undvik de vanligaste
             kommunikationsfällorna och stärk er relation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in stagger-2">
