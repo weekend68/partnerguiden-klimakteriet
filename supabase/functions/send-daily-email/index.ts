@@ -101,21 +101,11 @@ serve(async (req) => {
       });
     }
 
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
     let emailsSent = 0;
     let emailsSkipped = 0;
 
     for (const pref of preferences) {
       try {
-        // Skip weekends if user preference says so (unless admin test)
-        if (!isAdminTest && pref.skip_weekends && isWeekend) {
-          console.log(`Skipping user ${pref.user_id} - weekend`);
-          emailsSkipped++;
-          continue;
-        }
 
         // Check if user is admin (for admin test mode)
         if (isAdminTest) {
