@@ -24,7 +24,6 @@ interface AdminStats {
 interface EmailPreferences {
   email_enabled: boolean;
   email_frequency: string;
-  skip_weekends: boolean;
   journey_start_date: string;
 }
 
@@ -467,12 +466,6 @@ export default function Admin() {
                       <span className="text-muted-foreground">Frekvens</span>
                       <span className="font-medium text-foreground">
                         {emailPrefs.email_frequency === "daily" ? "Dagligen" : "Veckovis"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Hoppa över helger</span>
-                      <span className="font-medium text-foreground">
-                        {emailPrefs.skip_weekends ? "Ja" : "Nej"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
