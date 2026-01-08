@@ -160,38 +160,48 @@ serve(async (req) => {
         const article = ARTICLE_SEQUENCE[nextArticleIndex];
         const isLastArticle = nextArticleIndex === TOTAL_ARTICLES - 1;
         
-        // Generate magic link for auto-login
-        const redirectUrl = `${BASE_URL}/artikel/${article.slug}`;
-        console.log(`Generating magic link with redirect to: ${redirectUrl}`);
+        // Generate or get existing long-lived token for this user
+        const redirectPath = `/artikel/${article.slug}`;
         
-        const { data: magicLinkData, error: magicLinkError } = await supabase.auth.admin.generateLink({
-          type: "magiclink",
-          email: userEmail,
-          options: {
-            redirectTo: redirectUrl,
-          },
-        });
+        // Check if user already has a valid token
+        const { data: existingToken } = await supabase
+          .from("email_tokens")
+          .select("token, expires_at")
+          .eq("user_id", pref.user_id)
+          .gt("expires_at", new Date().toISOString())
+          .order("expires_at", { ascending: false })
+          .limit(1)
+          .single();
 
-        if (magicLinkError) {
-          console.error(`Error generating magic link for ${pref.user_id}:`, magicLinkError);
-          continue;
-        }
-
-        // The action_link from Supabase contains the magic link with token
-        let magicLink = magicLinkData.properties?.action_link;
+        let emailToken: string;
         
-        if (magicLink) {
-          console.log(`Generated magic link: ${magicLink}`);
-          if (!magicLink.includes('redirect_to=')) {
-            const separator = magicLink.includes('?') ? '&' : '?';
-            magicLink = `${magicLink}${separator}redirect_to=${encodeURIComponent(redirectUrl)}`;
-          }
+        if (existingToken) {
+          emailToken = existingToken.token;
+          console.log(`Using existing token for user ${pref.user_id}`);
         } else {
-          magicLink = redirectUrl;
-          console.log(`No magic link generated, using direct link: ${magicLink}`);
+          // Generate new token (valid for 14 days)
+          emailToken = crypto.randomUUID() + "-" + crypto.randomUUID();
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 14);
+          
+          const { error: tokenError } = await supabase
+            .from("email_tokens")
+            .insert({
+              user_id: pref.user_id,
+              token: emailToken,
+              expires_at: expiresAt.toISOString(),
+            });
+
+          if (tokenError) {
+            console.error(`Error creating token for ${pref.user_id}:`, tokenError);
+            continue;
+          }
+          console.log(`Created new 14-day token for user ${pref.user_id}`);
         }
-        
-        console.log(`Final link in email: ${magicLink}`);
+
+        // Create the long-lived login link using our custom verify function
+        const magicLink = `${Deno.env.get("SUPABASE_URL")}/functions/v1/verify-email-token?token=${emailToken}&redirect_to=${encodeURIComponent(redirectPath)}`;
+        console.log(`Generated long-lived link: ${magicLink}`);
 
         // Generate dynamic content based on progress
         const progressMessage = getProgressMessage(nextArticleIndex, isLastArticle, TOTAL_ARTICLES, displayName);
