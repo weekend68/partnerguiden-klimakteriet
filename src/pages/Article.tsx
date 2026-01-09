@@ -217,9 +217,9 @@ const Article = () => {
         {/* Login prompt if not logged in */}
         {!user && (
           <div className="mt-8 p-4 bg-muted/50 rounded-lg border border-border text-center">
-            <p className="text-muted-foreground text-sm">
-              <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg och se vilka artiklar du har läst.
-            </p>
+            <Link to="/auth" className="text-primary hover:underline text-sm">
+              Logga in för att spara dina framsteg och se vilka artiklar du har läst.
+            </Link>
           </div>
         )}
 

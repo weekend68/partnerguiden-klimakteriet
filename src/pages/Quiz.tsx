@@ -250,9 +250,9 @@ export default function Quiz() {
               )}
 
               {!user && (
-                <p className="text-sm text-muted-foreground mb-6">
-                  <Link to="/auth" className="text-primary hover:underline">Logga in</Link> för att spara dina framsteg
-                </p>
+                <Link to="/auth" className="text-sm text-primary hover:underline mb-6 block">
+                  Logga in för att spara dina framsteg
+                </Link>
               )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
