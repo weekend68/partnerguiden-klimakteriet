@@ -8,6 +8,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-re
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { supabase } from "@/integrations/supabase/client";
+import { Footer } from "@/components/Footer";
 
 interface QuizQuestion {
   question: string;
@@ -392,6 +393,7 @@ export default function Quiz() {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 }

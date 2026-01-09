@@ -12,6 +12,8 @@ import Auth from "./pages/Auth";
 import Congratulations from "./pages/Congratulations";
 import Admin from "./pages/Admin";
 import Unsubscribe from "./pages/Unsubscribe";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/grattis" element={<Congratulations />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/avregistrera" element={<Unsubscribe />} />
+          <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
+          <Route path="/om" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

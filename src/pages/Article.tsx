@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 interface Article {
   id: string;
@@ -108,7 +109,7 @@ const Article = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       {/* Progress Banner (if logged in) */}
@@ -159,7 +160,7 @@ const Article = () => {
         )}
       </div>
 
-      <main className="container max-w-3xl py-12">
+      <main className="flex-1 container max-w-3xl py-12">
         <Link to="/artiklar" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Alla artiklar
@@ -269,6 +270,7 @@ const Article = () => {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
