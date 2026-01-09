@@ -57,24 +57,26 @@ const Articles = () => {
       {user && (
         <div className="bg-primary/5 border-b border-primary/10 py-4">
           <div className="container">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-heading text-primary">{articlesRead}</p>
-                  <p className="text-xs text-muted-foreground">av {totalArticles} artiklar</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-heading text-primary">{articlesRead}</p>
+                    <p className="text-xs text-muted-foreground">av {totalArticles} artiklar</p>
+                  </div>
+                  <div className="h-8 w-px bg-border" />
+                  <div className="text-center">
+                    <p className="text-2xl font-heading text-primary">{quizzesCompleted}</p>
+                    <p className="text-xs text-muted-foreground">av {totalArticles} quiz</p>
+                  </div>
                 </div>
-                <div className="h-8 w-px bg-border" />
-                <div className="text-center">
-                  <p className="text-2xl font-heading text-primary">{quizzesCompleted}</p>
-                  <p className="text-xs text-muted-foreground">av {totalArticles} quiz</p>
+                <div className="flex-1 max-w-xs w-full">
+                  <div className="flex items-center justify-between text-sm mb-2 gap-4">
+                    <span className="text-muted-foreground">Din kunskapsresa:</span>
+                    <span className="font-medium text-foreground">{overallProgress}%</span>
+                  </div>
+                  <Progress value={overallProgress} className="h-2" />
                 </div>
-              </div>
-              <div className="flex-1 max-w-xs">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Total framsteg</span>
-                  <span className="font-medium text-foreground">{overallProgress}%</span>
-                </div>
-                <Progress value={overallProgress} className="h-2" />
               </div>
             </div>
           </div>
