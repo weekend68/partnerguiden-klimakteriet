@@ -145,12 +145,9 @@ const Index = () => {
             </Button>
           </div>
           {!user && (
-            <p className="text-sm text-muted-foreground mt-6 animate-fade-in stagger-3">
-              <Link to="/auth" className="text-primary hover:underline">
-                Logga in
-              </Link>{" "}
-              för att spara dina framsteg
-            </p>
+            <Link to="/auth" className="text-sm text-primary hover:underline mt-6 animate-fade-in stagger-3">
+              Logga in för att spara dina framsteg
+            </Link>
           )}
         </div>
       </section>
