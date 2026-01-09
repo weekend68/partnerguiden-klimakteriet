@@ -69,13 +69,22 @@ export default function Quiz() {
         setLoading(true);
         setError(null);
 
+        // Get the current user session for authentication
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          setError("Du måste vara inloggad för att ta quiz");
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              Authorization: `Bearer ${session.access_token}`,
             },
             body: JSON.stringify({
               articleTitle: article.title,
@@ -86,6 +95,10 @@ export default function Quiz() {
 
         if (!response.ok) {
           const data = await response.json();
+          if (response.status === 401) {
+            setError("Din session har gått ut. Ladda om sidan och logga in igen.");
+            return;
+          }
           throw new Error(data.error || "Kunde inte generera quiz");
         }
 
