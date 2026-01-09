@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import heroBackground from "@/assets/hero-background.jpg";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 interface Article {
   id: string;
@@ -66,7 +67,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       {/* Progress Banner (if logged in) */}
@@ -212,13 +213,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-border">
-        <div className="container text-center text-muted-foreground">
-          <p className="font-serif text-lg mb-2">Partnerguiden: Klimakteriet</p>
-          <p className="text-sm">Kunskap som stärker relationer under klimakteriet.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

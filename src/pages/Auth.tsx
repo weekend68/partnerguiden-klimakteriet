@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md border-border bg-card">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-heading text-foreground">Partnerguiden: Klimakteriet</CardTitle>
@@ -188,6 +189,7 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+      <Footer />
     </div>
   );
 }

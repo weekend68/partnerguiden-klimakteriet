@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Trophy, Share2, Twitter, Facebook, Linkedin, Copy, Check, ArrowLeft, Home } from "lucide-react";
 import { toast } from "sonner";
+import { Footer } from "@/components/Footer";
 
 export default function Congratulations() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function Congratulations() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
@@ -73,7 +74,7 @@ export default function Congratulations() {
         </div>
       </header>
 
-      <main className="container max-w-2xl py-16">
+      <main className="flex-1 container max-w-2xl py-16">
         <Card className="bg-card border-border overflow-hidden">
           {/* Celebration header */}
           <div className="bg-gradient-to-br from-primary/20 via-success/10 to-primary/20 p-8 text-center">
@@ -179,6 +180,7 @@ export default function Congratulations() {
           </CardContent>
         </Card>
       </main>
+      <Footer />
     </div>
   );
 }

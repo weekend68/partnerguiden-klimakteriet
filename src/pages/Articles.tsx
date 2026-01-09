@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 interface Article {
   id: string;
@@ -50,7 +51,7 @@ const Articles = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       {/* Progress Banner (if logged in) */}
@@ -83,7 +84,7 @@ const Articles = () => {
         </div>
       )}
 
-      <main className="container py-12">
+      <main className="flex-1 container py-12">
         <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Tillbaka till start
@@ -157,6 +158,7 @@ const Articles = () => {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 };
