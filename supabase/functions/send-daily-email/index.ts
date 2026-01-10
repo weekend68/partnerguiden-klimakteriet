@@ -211,7 +211,7 @@ serve(async (req) => {
 
         // Send email with Duolingo-style encouraging tone
         const emailResult = await resend.emails.send({
-          from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.moller-co.se>",
+          from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.se>",
           to: [userEmail],
           subject: `${subjectPrefix} Dag ${nextArticleIndex + 1}: ${article.title}${subjectSuffix}`,
           html: `
