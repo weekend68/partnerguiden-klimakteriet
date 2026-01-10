@@ -10,9 +10,9 @@ const corsHeaders = {
 };
 
 // Image base URL - images need to be in public/images folder
-const IMAGE_BASE_URL = "https://partnerguiden.moller-co.se/images";
+const IMAGE_BASE_URL = "https://partnerguiden.se/images";
 
-const BASE_URL = "https://partnerguiden.moller-co.se";
+const BASE_URL = "https://partnerguiden.se";
 
 interface ArticleData {
   slug: string;
