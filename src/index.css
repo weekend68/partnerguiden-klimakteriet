@@ -24,9 +24,9 @@
     --secondary: 150 15% 90%;
     --secondary-foreground: 150 20% 30%;
 
-    /* Muted tones */
+    /* Muted tones - darkened for WCAG AA contrast (4.5:1) */
     --muted: 35 20% 92%;
-    --muted-foreground: 25 15% 45%;
+    --muted-foreground: 25 18% 38%;
 
     /* Warm accent */
     --accent: 35 45% 88%;
