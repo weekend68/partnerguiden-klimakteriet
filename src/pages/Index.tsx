@@ -165,7 +165,7 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-serif text-xl font-medium mb-2">13 artiklar</h3>
+                <h2 className="font-serif text-xl font-medium mb-2">13 artiklar</h2>
                 <p className="text-muted-foreground">
                   Väl genomtänkta texter som förklarar vad som händer och hur du kan stötta.
                 </p>
@@ -174,7 +174,7 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-serif text-xl font-medium mb-2">Quiz efter varje artikel</h3>
+                <h2 className="font-serif text-xl font-medium mb-2">Quiz efter varje artikel</h2>
                 <p className="text-muted-foreground">
                   Testa din förståelse med AI-genererade frågor. Försök igen hur många gånger du vill.
                 </p>
@@ -183,7 +183,7 @@ const Index = () => {
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Heart className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-serif text-xl font-medium mb-2">Stödjande ton</h3>
+                <h2 className="font-serif text-xl font-medium mb-2">Stödjande ton</h2>
                 <p className="text-muted-foreground">
                   Skrivet för partners, utan fackspråk. Fokus på förståelse och praktiska verktyg.
                 </p>
