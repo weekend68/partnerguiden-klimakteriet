@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -246,18 +247,7 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
             <CardContent className="prose prose-sm max-w-none">
               <h1>{formData.title}</h1>
               <p className="lead text-muted-foreground">{formData.excerpt}</p>
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: formData.content
-                    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-                    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-                    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-                    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-                    .replace(/\n\n/g, "</p><p>")
-                    .replace(/^/, "<p>")
-                    .replace(/$/, "</p>"),
-                }}
-              />
+              <ReactMarkdown>{formData.content}</ReactMarkdown>
             </CardContent>
           </Card>
         )}
