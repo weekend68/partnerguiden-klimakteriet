@@ -43,6 +43,21 @@ function getFooterMessage(articleIndex: number, isLastArticle: boolean): string 
   return "Du har redan lärt dig så mycket! Fortsätt den goda trenden. 🌟";
 }
 
+// Calculate which article should be sent based on journey_start_date
+function calculateArticleIndexForToday(journeyStartDate: string): number {
+  const start = new Date(journeyStartDate);
+  const today = new Date();
+  
+  // Reset time to midnight for both dates to count full days
+  start.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  
+  // Calculate days since journey started (0 = first day = article 0)
+  const daysSinceStart = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  
+  return daysSinceStart;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -104,6 +119,11 @@ serve(async (req) => {
     let emailsSent = 0;
     let emailsSkipped = 0;
 
+    // Get today's date string for duplicate check
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
     for (const pref of preferences) {
       try {
 
@@ -122,6 +142,41 @@ serve(async (req) => {
           }
         }
 
+        // Calculate which article should be sent today based on journey_start_date
+        if (!pref.journey_start_date) {
+          console.log(`User ${pref.user_id} has no journey_start_date, skipping`);
+          continue;
+        }
+
+        const expectedArticleIndex = calculateArticleIndexForToday(pref.journey_start_date);
+        console.log(`User ${pref.user_id}: journey started ${pref.journey_start_date}, expected article index: ${expectedArticleIndex}`);
+
+        // Check if all articles have been sent (journey complete)
+        if (expectedArticleIndex >= TOTAL_ARTICLES) {
+          console.log(`User ${pref.user_id} has completed the journey (day ${expectedArticleIndex + 1})`);
+          continue;
+        }
+
+        // Check if this article was already sent today (prevent duplicates)
+        const { data: todayEmails, error: todayError } = await supabase
+          .from("email_log")
+          .select("id")
+          .eq("user_id", pref.user_id)
+          .eq("article_index", expectedArticleIndex)
+          .gte("sent_at", todayStart)
+          .lt("sent_at", todayEnd);
+
+        if (todayError) {
+          console.error(`Error checking today's emails for ${pref.user_id}:`, todayError);
+          continue;
+        }
+
+        if (todayEmails && todayEmails.length > 0) {
+          console.log(`User ${pref.user_id} already received article ${expectedArticleIndex} today, skipping`);
+          emailsSkipped++;
+          continue;
+        }
+
         // Get user's email from auth
         const { data: userData, error: userError } = await supabase.auth.admin.getUserById(pref.user_id);
         
@@ -133,32 +188,8 @@ serve(async (req) => {
         const userEmail = userData.user.email;
         const displayName = userData.user.user_metadata?.display_name || "du";
 
-        // Get sent emails count for this user
-        const { data: sentEmails, error: sentError } = await supabase
-          .from("email_log")
-          .select("article_index")
-          .eq("user_id", pref.user_id)
-          .eq("status", "sent")
-          .order("article_index", { ascending: false })
-          .limit(1);
-
-        if (sentError) {
-          console.error(`Error fetching sent emails for ${pref.user_id}:`, sentError);
-          continue;
-        }
-
-        // Determine next article index
-        const lastSentIndex = sentEmails && sentEmails.length > 0 ? sentEmails[0].article_index : -1;
-        const nextArticleIndex = lastSentIndex + 1;
-
-        // Check if all articles have been sent
-        if (nextArticleIndex >= TOTAL_ARTICLES) {
-          console.log(`User ${pref.user_id} has received all articles`);
-          continue;
-        }
-
-        const article = ARTICLE_SEQUENCE[nextArticleIndex];
-        const isLastArticle = nextArticleIndex === TOTAL_ARTICLES - 1;
+        const article = ARTICLE_SEQUENCE[expectedArticleIndex];
+        const isLastArticle = expectedArticleIndex === TOTAL_ARTICLES - 1;
         
         // Generate or get existing long-lived token for this user
         const redirectPath = `/artikel/${article.slug}`;
@@ -201,11 +232,11 @@ serve(async (req) => {
 
         // Create the long-lived login link using our custom verify function
         const magicLink = `${Deno.env.get("SUPABASE_URL")}/functions/v1/verify-email-token?token=${emailToken}&redirect_to=${encodeURIComponent(redirectPath)}`;
-        console.log(`Generated long-lived link: ${magicLink}`);
+        console.log(`Generated long-lived link for article ${expectedArticleIndex}: ${magicLink}`);
 
         // Generate dynamic content based on progress
-        const progressMessage = getProgressMessage(nextArticleIndex, isLastArticle, TOTAL_ARTICLES, displayName);
-        const footerMessage = getFooterMessage(nextArticleIndex, isLastArticle);
+        const progressMessage = getProgressMessage(expectedArticleIndex, isLastArticle, TOTAL_ARTICLES, displayName);
+        const footerMessage = getFooterMessage(expectedArticleIndex, isLastArticle);
         const subjectPrefix = isLastArticle ? "🎊" : "📖";
         const subjectSuffix = isLastArticle ? " (Sista artikeln!)" : "";
 
@@ -213,7 +244,7 @@ serve(async (req) => {
         const emailResult = await resend.emails.send({
           from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.se>",
           to: [userEmail],
-          subject: `${subjectPrefix} Dag ${nextArticleIndex + 1}: ${article.title}${subjectSuffix}`,
+          subject: `${subjectPrefix} Dag ${expectedArticleIndex + 1}: ${article.title}${subjectSuffix}`,
           html: `
 <!DOCTYPE html>
 <html>
@@ -252,7 +283,7 @@ serve(async (req) => {
                 </tr>
                 <tr>
                   <td style="padding: 25px;">
-                    <p style="margin: 0 0 5px 0; color: #8B7355; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">${isLastArticle ? "Sista artikeln" : `Dag ${nextArticleIndex + 1}`}</p>
+                    <p style="margin: 0 0 5px 0; color: #8B7355; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">${isLastArticle ? "Sista artikeln" : `Dag ${expectedArticleIndex + 1}`}</p>
                     <h2 style="margin: 0 0 15px 0; color: #2D2D2D; font-size: 22px; font-weight: 600;">${article.title}</h2>
                     <p style="margin: 0; color: #6B5B4F; font-size: 15px; line-height: 1.5;">${article.excerpt}</p>
                   </td>
@@ -296,13 +327,13 @@ serve(async (req) => {
           `,
         });
 
-        console.log(`Email sent to ${userEmail}:`, emailResult);
+        console.log(`Email sent to ${userEmail} (article ${expectedArticleIndex}):`, emailResult);
 
         // Log the sent email
         const { error: logError } = await supabase.from("email_log").insert({
           user_id: pref.user_id,
           article_slug: article.slug,
-          article_index: nextArticleIndex,
+          article_index: expectedArticleIndex,
           status: "sent",
         });
 
