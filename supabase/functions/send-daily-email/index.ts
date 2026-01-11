@@ -66,10 +66,59 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if this is an admin test (2-minute interval)
+    // Check if this is an admin test
     const isAdminTest = req.headers.get("x-admin-test") === "true";
+    
+    // If admin test mode, require authentication and verify admin role BEFORE any processing
+    if (isAdminTest) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        console.log("Admin test mode requires authentication");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - Authentication required for admin test" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create user client to verify the JWT
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+
+      if (claimsError || !claimsData?.claims) {
+        console.log("Invalid or expired token");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userId = claimsData.claims.sub;
+
+      // Verify user is admin using service role client
+      const { data: adminRole, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .single();
+
+      if (roleError || !adminRole) {
+        console.log(`User ${userId} is not an admin`);
+        return new Response(
+          JSON.stringify({ error: "Forbidden - Admin role required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`Admin test authorized for user ${userId}`);
+    }
     
     console.log(`Running email job. Admin test: ${isAdminTest}`);
 
@@ -126,8 +175,7 @@ serve(async (req) => {
 
     for (const pref of preferences) {
       try {
-
-        // Check if user is admin (for admin test mode)
+        // In admin test mode, only send to admins
         if (isAdminTest) {
           const { data: roles } = await supabase
             .from("user_roles")
