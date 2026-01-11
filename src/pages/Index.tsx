@@ -124,6 +124,7 @@ const Index = () => {
             src={heroBackground}
             alt=""
             fetchPriority="high"
+            sizes="100vw"
             className="absolute inset-0 w-full h-full object-cover object-center"
             aria-hidden="true"
           />
@@ -202,6 +203,9 @@ const Index = () => {
               <img 
                 src={nextArticle.image_url || `/images/${nextArticle.image_filename}`} 
                 alt={nextArticle.image_alt || nextArticle.title} 
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 768px, 896px"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-64 object-cover" 
               />
               <div className="p-6 md:p-8">
