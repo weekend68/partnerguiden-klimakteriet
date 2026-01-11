@@ -58,7 +58,7 @@ const Header = () => {
             </div>
           ) : (
             <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link to="/auth">
+              <Link to="/auth" aria-label="Logga in">
                 <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Logga in</span>
               </Link>
