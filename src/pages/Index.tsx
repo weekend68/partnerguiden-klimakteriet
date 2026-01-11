@@ -118,10 +118,13 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 overflow-hidden">
-        {/* Background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroBackground})` }}
+        {/* Background image - using img tag for LCP optimization */}
+        <img
+          src={heroBackground}
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          aria-hidden="true"
         />
         {/* Overlay for readability */}
         <div className="absolute inset-0 bg-background/75" />
