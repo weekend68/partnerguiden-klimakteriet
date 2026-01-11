@@ -6,7 +6,7 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret, x-admin-test",
 };
 
 // Image base URL - images need to be in public/images folder
@@ -20,6 +20,24 @@ interface ArticleData {
   excerpt: string;
   image_filename: string;
   sort_order: number;
+}
+
+// HMAC-SHA256 signing for secure unsubscribe tokens
+async function generateHMAC(message: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const messageData = encoder.encode(message);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
 // Helper to generate email content based on progress
@@ -67,10 +85,33 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const unsubscribeSecret = Deno.env.get("UNSUBSCRIBE_SECRET");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if this is an admin test
+    // Check authorization method
     const isAdminTest = req.headers.get("x-admin-test") === "true";
+    const providedCronSecret = req.headers.get("x-cron-secret");
+
+    // If NOT admin test, require cron secret (for scheduled jobs)
+    if (!isAdminTest) {
+      if (!cronSecret) {
+        console.error("CRON_SECRET not configured");
+        return new Response(
+          JSON.stringify({ error: "Server configuration error" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (providedCronSecret !== cronSecret) {
+        console.log("Invalid or missing cron secret");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized - Invalid cron secret" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      console.log("Cron job authorized via secret");
+    }
     
     // If admin test mode, require authentication and verify admin role BEFORE any processing
     if (isAdminTest) {
@@ -282,6 +323,15 @@ serve(async (req) => {
         const magicLink = `${Deno.env.get("SUPABASE_URL")}/functions/v1/verify-email-token?token=${emailToken}&redirect_to=${encodeURIComponent(redirectPath)}`;
         console.log(`Generated long-lived link for article ${expectedArticleIndex}: ${magicLink}`);
 
+        // Generate signed unsubscribe link (valid for 90 days)
+        let unsubscribeLink = `${BASE_URL}/avregistrera`;
+        if (unsubscribeSecret) {
+          const unsubExpiry = Date.now() + (90 * 24 * 60 * 60 * 1000); // 90 days
+          const unsubMessage = `${pref.user_id}:${unsubExpiry}`;
+          const unsubToken = await generateHMAC(unsubMessage, unsubscribeSecret);
+          unsubscribeLink = `${Deno.env.get("SUPABASE_URL")}/functions/v1/unsubscribe?token=${encodeURIComponent(unsubToken)}&id=${pref.user_id}&exp=${unsubExpiry}`;
+        }
+
         // Generate dynamic content based on progress
         const progressMessage = getProgressMessage(expectedArticleIndex, isLastArticle, TOTAL_ARTICLES, displayName);
         const footerMessage = getFooterMessage(expectedArticleIndex, isLastArticle);
@@ -362,7 +412,7 @@ serve(async (req) => {
                 Du får detta mejl för att du har registrerat dig på Partnerguiden.
               </p>
               <p style="margin: 0; color: #888; font-size: 12px;">
-                <a href="${BASE_URL}/avregistrera?token=${btoa(pref.user_id)}" style="color: #8B7355; text-decoration: underline;">Avsluta prenumeration</a>
+                <a href="${unsubscribeLink}" style="color: #8B7355; text-decoration: underline;">Avsluta prenumeration</a>
               </p>
             </td>
           </tr>
