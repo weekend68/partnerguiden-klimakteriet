@@ -339,6 +339,8 @@ serve(async (req) => {
         const subjectSuffix = isLastArticle ? " (Sista artikeln!)" : "";
 
         // Send email with Duolingo-style encouraging tone
+        console.log(`Attempting to send email to ${userEmail} for article ${expectedArticleIndex}...`);
+        
         const emailResult = await resend.emails.send({
           from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.se>",
           to: [userEmail],
@@ -425,7 +427,23 @@ serve(async (req) => {
           `,
         });
 
-        console.log(`Email sent to ${userEmail} (article ${expectedArticleIndex}):`, emailResult);
+        // Check for Resend API errors
+        if (emailResult.error) {
+          console.error(`Resend API error for ${userEmail}:`, emailResult.error);
+          
+          // Log failed email attempt
+          await supabase.from("email_log").insert({
+            user_id: pref.user_id,
+            article_slug: article.slug,
+            article_index: expectedArticleIndex,
+            status: "failed",
+            error_message: emailResult.error.message || JSON.stringify(emailResult.error),
+          });
+          
+          continue;
+        }
+
+        console.log(`Email sent successfully to ${userEmail} (article ${expectedArticleIndex}):`, emailResult);
 
         // Log the sent email
         const { error: logError } = await supabase.from("email_log").insert({
