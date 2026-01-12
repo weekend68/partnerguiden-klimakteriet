@@ -92,25 +92,34 @@ serve(async (req) => {
     // Check authorization method
     const isAdminTest = req.headers.get("x-admin-test") === "true";
     const providedCronSecret = req.headers.get("x-cron-secret");
+    const authHeader = req.headers.get("Authorization");
+    
+    // Check if authorized via service role key (for cron jobs from pg_net)
+    const isServiceRoleAuth = authHeader?.includes(supabaseServiceKey);
 
-    // If NOT admin test, require cron secret (for scheduled jobs)
+    // If NOT admin test, require cron secret OR service role key (for scheduled jobs)
     if (!isAdminTest) {
-      if (!cronSecret) {
-        console.error("CRON_SECRET not configured");
-        return new Response(
-          JSON.stringify({ error: "Server configuration error" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      let authorized = false;
+      
+      // Method 1: Service role key in Authorization header (for pg_net cron calls)
+      if (isServiceRoleAuth) {
+        console.log("Cron job authorized via service role key");
+        authorized = true;
       }
-
-      if (providedCronSecret !== cronSecret) {
-        console.log("Invalid or missing cron secret");
+      
+      // Method 2: CRON_SECRET header (legacy/fallback)
+      if (!authorized && cronSecret && providedCronSecret === cronSecret) {
+        console.log("Cron job authorized via cron secret");
+        authorized = true;
+      }
+      
+      if (!authorized) {
+        console.log("Unauthorized: Invalid or missing cron secret/service role key");
         return new Response(
-          JSON.stringify({ error: "Unauthorized - Invalid cron secret" }),
+          JSON.stringify({ error: "Unauthorized - Invalid credentials" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.log("Cron job authorized via secret");
     }
     
     // If admin test mode, require authentication and verify admin role BEFORE any processing
