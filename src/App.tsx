@@ -20,6 +20,7 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Sitemap = lazy(() => import("./pages/Sitemap"));
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/avregistrera" element={<Unsubscribe />} />
             <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
             <Route path="/om" element={<About />} />
+            <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
