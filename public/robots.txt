@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://urwcoxzikudihxazthth.supabase.co/functions/v1/sitemap
+Sitemap: https://partnerguiden.se/sitemap.xml
