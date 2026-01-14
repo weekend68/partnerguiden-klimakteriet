@@ -41,7 +41,7 @@ serve(async (req) => {
     if (tokenError || !tokenData) {
       console.error("Token lookup error:", tokenError);
       return Response.redirect(
-        `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}/auth?error=invalid_token`,
+        `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}/auth?error=invalid_token`,
         302
       );
     }
@@ -49,7 +49,7 @@ serve(async (req) => {
     // Check if token has expired
     if (new Date(tokenData.expires_at) < new Date()) {
       return Response.redirect(
-        `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}/auth?error=expired_token`,
+        `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}/auth?error=expired_token`,
         302
       );
     }
@@ -60,7 +60,7 @@ serve(async (req) => {
     if (userError || !userData.user) {
       console.error("User lookup error:", userError);
       return Response.redirect(
-        `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}/auth?error=user_not_found`,
+        `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}/auth?error=user_not_found`,
         302
       );
     }
@@ -70,14 +70,14 @@ serve(async (req) => {
       type: "magiclink",
       email: userData.user.email!,
       options: {
-        redirectTo: `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}${redirectTo}`,
+        redirectTo: `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}${redirectTo}`,
       },
     });
 
     if (linkError || !linkData) {
       console.error("Magic link generation error:", linkError);
       return Response.redirect(
-        `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}/auth?error=link_failed`,
+        `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}/auth?error=link_failed`,
         302
       );
     }
@@ -86,7 +86,7 @@ serve(async (req) => {
     const verifyUrl = linkData.properties?.action_link;
     if (!verifyUrl) {
       return Response.redirect(
-        `${Deno.env.get("BASE_URL") || "https://partnerguiden.moller-co.se"}/auth?error=link_failed`,
+        `${Deno.env.get("BASE_URL") || "https://partnerguiden.se"}/auth?error=link_failed`,
         302
       );
     }
