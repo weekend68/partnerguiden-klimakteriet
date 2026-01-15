@@ -21,6 +21,8 @@ interface Article {
   image_filename: string;
   image_alt: string | null;
   meta_title: string | null;
+  published_at: string | null;
+  updated_at: string;
 }
 
 const Article = () => {
@@ -37,7 +39,7 @@ const Article = () => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt, meta_title")
+        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt, meta_title, published_at, updated_at")
         .order("sort_order", { ascending: true });
 
       if (!error && data) {
@@ -108,8 +110,42 @@ const Article = () => {
     );
   }
 
+  // Generate JSON-LD structured data for Article schema
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt,
+    image: `https://partnerguiden.se${getImageUrl(article)}`,
+    datePublished: article.published_at || article.updated_at,
+    dateModified: article.updated_at,
+    author: {
+      "@type": "Organization",
+      name: "Partnerguiden",
+      url: "https://partnerguiden.se"
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Partnerguiden: Klimakteriet",
+      url: "https://partnerguiden.se",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://partnerguiden.se/favicon.ico"
+      }
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://partnerguiden.se/artikel/${article.slug}`
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Article Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <Header />
 
       {/* Progress Banner (if logged in) */}
