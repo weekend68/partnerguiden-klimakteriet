@@ -122,7 +122,7 @@ const Article = () => {
     author: {
       "@type": "Organization",
       name: "Partnerguiden",
-      url: "https://partnerguiden.se"
+      url: "https://partnerguiden.se/om"
     },
     publisher: {
       "@type": "Organization",
