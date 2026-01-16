@@ -7,9 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import heroBackground from "@/assets/hero-background.jpg";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 interface Article {
   id: string;
@@ -22,8 +22,7 @@ interface Article {
 }
 
 const Index = () => {
-  useDocumentTitle(null); // Use default title
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { articlesRead, quizzesCompleted, totalArticles, overallProgress, getArticleProgress } = useProgress();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +67,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO url="/" />
       <Header />
 
       {/* Progress Banner (if logged in) */}

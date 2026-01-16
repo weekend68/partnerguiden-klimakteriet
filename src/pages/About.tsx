@@ -1,12 +1,15 @@
 import Header from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { SEO } from "@/components/SEO";
 
 export default function About() {
-  useDocumentTitle("Om Partnerguiden – Partnerguiden: Klimakteriet");
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO 
+        title="Om Partnerguiden" 
+        description="Partnerguiden: Klimakteriet är skapad för dig som vill förstå och stötta din partner genom klimakteriet."
+        url="/om"
+      />
       <Header />
       <main className="flex-1 container py-12 max-w-3xl">
         <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-8">Om Partnerguiden</h1>

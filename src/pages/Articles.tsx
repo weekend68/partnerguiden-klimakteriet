@@ -5,9 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 interface Article {
   id: string;
@@ -25,8 +25,6 @@ const Articles = () => {
   
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useDocumentTitle("Alla artiklar – Partnerguiden: Klimakteriet");
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -52,6 +50,11 @@ const Articles = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO 
+        title="Alla artiklar" 
+        description="Läs artiklarna i ordning eller hoppa direkt till det ämne som känns mest relevant. 13 artiklar om klimakteriet för partners."
+        url="/artiklar"
+      />
       <Header />
 
       {/* Progress Banner (if logged in) */}

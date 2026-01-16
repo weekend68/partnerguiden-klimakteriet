@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 interface Article {
   id: string;
@@ -59,8 +59,13 @@ const Article = () => {
   const nextArticle = allArticles[currentIndex + 1];
   const prevArticle = allArticles[currentIndex - 1];
 
-  // Generate document title automatically: Title | Site Name
-  useDocumentTitle(article?.title ? `${article.title} | Partnerguiden: Klimakteriet` : undefined);
+  // Get image URL - prefer image_url from DB, fallback to public folder
+  const getImageUrl = (art: Article) => {
+    if (art.image_url) return art.image_url;
+    return `/images/${art.image_filename}`;
+  };
+
+  const imageFullUrl = article ? `https://partnerguiden.se${getImageUrl(article)}` : undefined;
 
   // Mark article as read when user scrolls to bottom
   useEffect(() => {
@@ -80,12 +85,6 @@ const Article = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [user, article, progress?.article_read, markArticleRead]);
-
-  // Get image URL - prefer image_url from DB, fallback to public folder
-  const getImageUrl = (art: Article) => {
-    if (art.image_url) return art.image_url;
-    return `/images/${art.image_filename}`;
-  };
 
   if (loading) {
     return (
@@ -141,6 +140,16 @@ const Article = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* SEO meta tags */}
+      <SEO
+        title={article.title}
+        description={article.excerpt}
+        image={imageFullUrl}
+        url={`/artikel/${article.slug}`}
+        type="article"
+        publishedTime={article.published_at || article.updated_at}
+        modifiedTime={article.updated_at}
+      />
       {/* Article Schema.org JSON-LD */}
       <script
         type="application/ld+json"
