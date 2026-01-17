@@ -25,6 +25,13 @@ interface Article {
   updated_at: string;
 }
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+}
+
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -33,6 +40,7 @@ const Article = () => {
   
   const [article, setArticle] = useState<Article | null>(null);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +54,19 @@ const Article = () => {
         setAllArticles(data);
         const currentArticle = data.find(a => a.slug === slug);
         setArticle(currentArticle || null);
+
+        // Fetch FAQs for current article
+        if (currentArticle) {
+          const { data: faqData } = await supabase
+            .from("article_faqs")
+            .select("id, question, answer, sort_order")
+            .eq("article_id", currentArticle.id)
+            .order("sort_order", { ascending: true });
+          
+          if (faqData) {
+            setFaqs(faqData);
+          }
+        }
       }
       setLoading(false);
     };
@@ -109,7 +130,7 @@ const Article = () => {
     );
   }
 
-  // Generate JSON-LD structured data for Article and Breadcrumb schemas
+  // Generate JSON-LD structured data for Article, Breadcrumb, and FAQ schemas
   const structuredDataJsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -161,7 +182,19 @@ const Article = () => {
             item: `https://partnerguiden.se/artikel/${article.slug}`
           }
         ]
-      }
+      },
+      // Only include FAQPage if there are FAQs
+      ...(faqs.length > 0 ? [{
+        "@type": "FAQPage",
+        mainEntity: faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: faq.answer
+          }
+        }))
+      }] : [])
     ]
   };
 

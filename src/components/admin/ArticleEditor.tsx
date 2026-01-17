@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FAQEditor, type FAQ } from "./FAQEditor";
 
 interface Article {
   id: string;
@@ -45,23 +46,66 @@ interface ArticleEditorProps {
 export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   const [formData, setFormData] = useState<Article>(article);
   const [savedData, setSavedData] = useState<Article>(article);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [savedFaqs, setSavedFaqs] = useState<FAQ[]>([]);
   const [saving, setSaving] = useState(false);
+  const [loadingFaqs, setLoadingFaqs] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   const isPublished = !!article.published_at;
 
+  // Fetch FAQs on mount
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      const { data, error } = await supabase
+        .from("article_faqs")
+        .select("id, question, answer, sort_order")
+        .eq("article_id", article.id)
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        const faqData = data.map((f) => ({ ...f, isNew: false, isDeleted: false }));
+        setFaqs(faqData);
+        setSavedFaqs(faqData);
+      }
+      setLoadingFaqs(false);
+    };
+
+    fetchFaqs();
+  }, [article.id]);
+
+  // Check if FAQs have changed
+  const faqsChanged = useMemo(() => {
+    const visibleFaqs = faqs.filter((f) => !f.isDeleted);
+    const visibleSavedFaqs = savedFaqs.filter((f) => !f.isDeleted);
+    
+    if (visibleFaqs.length !== visibleSavedFaqs.length) return true;
+    
+    return visibleFaqs.some((faq, index) => {
+      const saved = visibleSavedFaqs[index];
+      if (!saved) return true;
+      return (
+        faq.id !== saved.id ||
+        faq.question !== saved.question ||
+        faq.answer !== saved.answer ||
+        faq.sort_order !== saved.sort_order
+      );
+    });
+  }, [faqs, savedFaqs]);
+
   // Check if there are unsaved changes (compare to last saved state)
   const hasUnsavedChanges = useMemo(() => {
-    return (
+    const articleChanged = 
       formData.title !== savedData.title ||
       formData.slug !== savedData.slug ||
       formData.excerpt !== savedData.excerpt ||
       formData.content !== savedData.content ||
       formData.image_filename !== savedData.image_filename ||
-      formData.image_alt !== savedData.image_alt
-    );
-  }, [formData, savedData]);
+      formData.image_alt !== savedData.image_alt;
+    
+    return articleChanged || faqsChanged;
+  }, [formData, savedData, faqsChanged]);
 
   // Warn before closing browser/tab with unsaved changes
   useEffect(() => {
@@ -91,7 +135,8 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Save article
+      const { error: articleError } = await supabase
         .from("articles")
         .update({
           title: formData.title,
@@ -103,7 +148,60 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
         })
         .eq("id", article.id);
 
-      if (error) throw error;
+      if (articleError) throw articleError;
+
+      // Handle FAQ operations
+      const faqsToDelete = faqs.filter((f) => f.isDeleted && !f.isNew);
+      const faqsToInsert = faqs.filter((f) => f.isNew && !f.isDeleted);
+      const faqsToUpdate = faqs.filter((f) => !f.isNew && !f.isDeleted);
+
+      // Delete FAQs
+      if (faqsToDelete.length > 0) {
+        const { error } = await supabase
+          .from("article_faqs")
+          .delete()
+          .in("id", faqsToDelete.map((f) => f.id));
+        if (error) throw error;
+      }
+
+      // Insert new FAQs
+      if (faqsToInsert.length > 0) {
+        const { error } = await supabase.from("article_faqs").insert(
+          faqsToInsert.map((f) => ({
+            article_id: article.id,
+            question: f.question,
+            answer: f.answer,
+            sort_order: f.sort_order,
+          }))
+        );
+        if (error) throw error;
+      }
+
+      // Update existing FAQs
+      for (const faq of faqsToUpdate) {
+        const { error } = await supabase
+          .from("article_faqs")
+          .update({
+            question: faq.question,
+            answer: faq.answer,
+            sort_order: faq.sort_order,
+          })
+          .eq("id", faq.id);
+        if (error) throw error;
+      }
+
+      // Refresh FAQs from database
+      const { data: refreshedFaqs } = await supabase
+        .from("article_faqs")
+        .select("id, question, answer, sort_order")
+        .eq("article_id", article.id)
+        .order("sort_order", { ascending: true });
+
+      if (refreshedFaqs) {
+        const faqData = refreshedFaqs.map((f) => ({ ...f, isNew: false, isDeleted: false }));
+        setFaqs(faqData);
+        setSavedFaqs(faqData);
+      }
 
       setSavedData(formData);
       toast.success("Artikeln sparad!");
@@ -236,6 +334,11 @@ export function ArticleEditor({ article, onBack, onSave }: ArticleEditorProps) {
               </p>
             </CardContent>
           </Card>
+
+          {/* FAQ Editor */}
+          {!loadingFaqs && (
+            <FAQEditor faqs={faqs} onChange={setFaqs} />
+          )}
         </div>
 
         {/* Preview Panel */}
