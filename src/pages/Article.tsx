@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, BookCheck, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookCheck, CheckCircle, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -233,10 +233,32 @@ const Article = () => {
       </div>
 
       <main className="flex-1 container max-w-3xl py-12">
-        <Link to="/artiklar" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Alla artiklar
-        </Link>
+        {/* Breadcrumbs */}
+        <nav aria-label="Brödsmulor" className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-muted-foreground">
+            <li>
+              <Link to="/" className="hover:text-foreground transition-colors">
+                Hem
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="h-4 w-4" />
+            </li>
+            <li>
+              <Link to="/artiklar" className="hover:text-foreground transition-colors">
+                Artiklar
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="h-4 w-4" />
+            </li>
+            <li>
+              <span className="text-foreground font-medium truncate max-w-[200px] inline-block align-bottom" title={article.title}>
+                {article.title}
+              </span>
+            </li>
+          </ol>
+        </nav>
 
         <div className="text-sm text-muted-foreground mb-4">
           Artikel {currentIndex + 1} av {allArticles.length}
