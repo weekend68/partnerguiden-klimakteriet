@@ -109,33 +109,60 @@ const Article = () => {
     );
   }
 
-  // Generate JSON-LD structured data for Article schema
-  const articleJsonLd = {
+  // Generate JSON-LD structured data for Article and Breadcrumb schemas
+  const structuredDataJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.excerpt,
-    image: `https://partnerguiden.se${getImageUrl(article)}`,
-    datePublished: article.published_at || article.updated_at,
-    dateModified: article.updated_at,
-    author: {
-      "@type": "Organization",
-      name: "Partnerguiden",
-      url: "https://partnerguiden.se/om"
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Partnerguiden: Klimakteriet",
-      url: "https://partnerguiden.se",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://partnerguiden.se/favicon.ico"
+    "@graph": [
+      {
+        "@type": "Article",
+        headline: article.title,
+        description: article.excerpt,
+        image: `https://partnerguiden.se${getImageUrl(article)}`,
+        datePublished: article.published_at || article.updated_at,
+        dateModified: article.updated_at,
+        author: {
+          "@type": "Organization",
+          name: "Partnerguiden",
+          url: "https://partnerguiden.se/om"
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Partnerguiden: Klimakteriet",
+          url: "https://partnerguiden.se",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://partnerguiden.se/favicon.ico"
+          }
+        },
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": `https://partnerguiden.se/artikel/${article.slug}`
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Hem",
+            item: "https://partnerguiden.se"
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Artiklar",
+            item: "https://partnerguiden.se/artiklar"
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: article.title,
+            item: `https://partnerguiden.se/artikel/${article.slug}`
+          }
+        ]
       }
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `https://partnerguiden.se/artikel/${article.slug}`
-    }
+    ]
   };
 
   return (
@@ -150,10 +177,10 @@ const Article = () => {
         publishedTime={article.published_at || article.updated_at}
         modifiedTime={article.updated_at}
       />
-      {/* Article Schema.org JSON-LD */}
+      {/* Article & Breadcrumb Schema.org JSON-LD */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredDataJsonLd) }}
       />
       <Header />
 
