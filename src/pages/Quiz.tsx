@@ -170,7 +170,21 @@ export default function Quiz() {
   const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
   const nextArticle = allArticles[currentArticleIndex + 1];
   const passed = score >= 3;
-  const isAllComplete = passed && articlesRead === totalArticles && quizzesCompleted + 1 === totalArticles;
+  
+  // Calculate if all complete - use a stable check that includes this quiz being the last one
+  // We check if this is the last article AND user has completed all others before this one
+  const isLastArticle = currentArticleIndex === allArticles.length - 1;
+  const hasCompletedAllPreviousQuizzes = quizzesCompleted >= totalArticles - 1;
+  const isAllComplete = passed && isLastArticle && hasCompletedAllPreviousQuizzes;
+  
+  // Track if we've shown the completion state to prevent re-renders from changing it
+  const [showCourseComplete, setShowCourseComplete] = useState(false);
+  
+  useEffect(() => {
+    if (isAllComplete && quizComplete && !showCourseComplete) {
+      setShowCourseComplete(true);
+    }
+  }, [isAllComplete, quizComplete, showCourseComplete]);
 
   if (loading) {
     return (
@@ -220,21 +234,22 @@ export default function Quiz() {
 
   if (quizComplete) {
     const percentage = Math.round((score / questions.length) * 100);
+    const displayCourseComplete = showCourseComplete || isAllComplete;
 
     return (
       <div className="min-h-screen bg-background">
         {/* Show fireworks when completing the entire course */}
-        {isAllComplete && <Fireworks duration={5000} />}
+        {displayCourseComplete && <Fireworks duration={5000} />}
         
         <div className="container max-w-2xl mx-auto px-4 py-12">
-          <Card className={`bg-card border-border ${isAllComplete ? 'relative overflow-hidden' : ''}`}>
+          <Card className={`bg-card border-border ${displayCourseComplete ? 'relative overflow-hidden' : ''}`}>
             {/* Special celebration header for course completion */}
-            {isAllComplete && (
+            {displayCourseComplete && (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
             )}
             
             <CardContent className="p-8 text-center relative">
-              {isAllComplete ? (
+              {displayCourseComplete ? (
                 <>
                   <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6 animate-scale-in">
                     <Trophy className="h-10 w-10 text-primary" />
