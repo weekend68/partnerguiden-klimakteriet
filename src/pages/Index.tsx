@@ -55,6 +55,7 @@ const Index = () => {
     : articles[0];
 
   const hasProgress = user && articlesRead > 0;
+  const isFullyComplete = user && quizzesCompleted === totalArticles && totalArticles > 0;
 
   // Show loading state while fetching articles
   if (loading || !articles.length) {
@@ -95,7 +96,19 @@ const Index = () => {
                   <Progress value={overallProgress} className="h-2" />
                 </div>
               </div>
-              {nextArticle && (
+              {isFullyComplete ? (
+                <div className="text-center sm:text-left">
+                  <p className="text-sm">
+                    <span className="font-medium text-primary">🎉 Grattis! Du har klarat hela kursen!</span>{" "}
+                    <Link
+                      to="/grattis"
+                      className="text-primary hover:underline"
+                    >
+                      Se ditt diplom →
+                    </Link>
+                  </p>
+                </div>
+              ) : nextArticle && (
                 <div className="text-center sm:text-left">
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Nästa:</span>{" "}
