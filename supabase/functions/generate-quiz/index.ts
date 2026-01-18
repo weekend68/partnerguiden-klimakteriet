@@ -1,10 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Simple in-memory rate limiting per IP (resets on function restart)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX = 10; // Max requests per window
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,35 +33,20 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check - require valid user token
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.log("Missing or invalid Authorization header");
-      return new Response(
-        JSON.stringify({ error: "Du måste vara inloggad för att generera quiz" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    // Get client IP for rate limiting
+    const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+      || req.headers.get("cf-connecting-ip") 
+      || req.headers.get("x-real-ip")
+      || "unknown";
     
-    if (claimsError || !claimsData?.claims) {
-      console.log("Invalid token:", claimsError?.message);
+    // Check rate limit
+    if (!checkRateLimit(clientIP)) {
+      console.log("Rate limited IP:", clientIP);
       return new Response(
-        JSON.stringify({ error: "Ogiltig session, logga in igen" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "För många förfrågningar. Vänta en stund och försök igen." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const userId = claimsData.claims.sub;
-    console.log("Authenticated user:", userId);
 
     const body = await req.json();
     const { articleTitle, articleContent } = body;
@@ -81,7 +87,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating quiz for article:", articleTitle, "by user:", userId);
+    console.log("Generating quiz for article:", articleTitle, "from IP:", clientIP);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
