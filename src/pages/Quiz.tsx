@@ -43,6 +43,9 @@ export default function Quiz() {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
+  
+  // Track if we've shown the completion state to prevent re-renders from changing it
+  const [showCourseComplete, setShowCourseComplete] = useState(false);
 
   // Fetch article from database
   useEffect(() => {
@@ -176,9 +179,6 @@ export default function Quiz() {
   const isLastArticle = currentArticleIndex === allArticles.length - 1;
   const hasCompletedAllPreviousQuizzes = quizzesCompleted >= totalArticles - 1;
   const isAllComplete = passed && isLastArticle && hasCompletedAllPreviousQuizzes;
-  
-  // Track if we've shown the completion state to prevent re-renders from changing it
-  const [showCourseComplete, setShowCourseComplete] = useState(false);
   
   useEffect(() => {
     if (isAllComplete && quizComplete && !showCourseComplete) {
