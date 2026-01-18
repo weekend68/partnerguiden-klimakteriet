@@ -74,22 +74,13 @@ export default function Quiz() {
         setLoading(true);
         setError(null);
 
-        // Get the current user session for authentication
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          setError("Du måste vara inloggad för att ta quiz");
-          setLoading(false);
-          return;
-        }
-
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-quiz`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
             body: JSON.stringify({
               articleTitle: article.title,
@@ -100,8 +91,8 @@ export default function Quiz() {
 
         if (!response.ok) {
           const data = await response.json();
-          if (response.status === 401) {
-            setError("Din session har gått ut. Ladda om sidan och logga in igen.");
+          if (response.status === 429) {
+            setError("För många förfrågningar. Vänta en stund och försök igen.");
             return;
           }
           throw new Error(data.error || "Kunde inte generera quiz");
@@ -132,8 +123,9 @@ export default function Quiz() {
   const nextArticle = allArticles[currentArticleIndex + 1];
   const passed = score >= 3;
   const isLastArticle = currentArticleIndex === allArticles.length - 1;
-  const hasCompletedAllPreviousQuizzes = quizzesCompleted >= totalArticles - 1;
-  const isAllComplete = passed && isLastArticle && hasCompletedAllPreviousQuizzes;
+  // Include the current quiz in the count since quizzesCompleted hasn't updated yet
+  const effectiveQuizzesCompleted = quizComplete && passed ? quizzesCompleted + 1 : quizzesCompleted;
+  const isAllComplete = passed && isLastArticle && effectiveQuizzesCompleted >= totalArticles;
   
   useEffect(() => {
     if (isAllComplete && quizComplete && !showCourseComplete) {
@@ -222,7 +214,12 @@ export default function Quiz() {
               <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-heading text-foreground mb-2">Något gick fel</h2>
               <p className="text-muted-foreground mb-6">{error}</p>
-              <Button onClick={() => window.location.reload()}>Försök igen</Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={() => navigate(`/artikel/${slug}`)}>
+                  Tillbaka till artikeln
+                </Button>
+                <Button onClick={() => window.location.reload()}>Försök igen</Button>
+              </div>
             </CardContent>
           </Card>
         </div>
