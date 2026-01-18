@@ -127,6 +127,20 @@ export default function Quiz() {
     }
   }, [quizComplete, user, article, score, markQuizCompleted]);
 
+  // Calculate completion state - must be before any conditional returns
+  const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
+  const nextArticle = allArticles[currentArticleIndex + 1];
+  const passed = score >= 3;
+  const isLastArticle = currentArticleIndex === allArticles.length - 1;
+  const hasCompletedAllPreviousQuizzes = quizzesCompleted >= totalArticles - 1;
+  const isAllComplete = passed && isLastArticle && hasCompletedAllPreviousQuizzes;
+  
+  useEffect(() => {
+    if (isAllComplete && quizComplete && !showCourseComplete) {
+      setShowCourseComplete(true);
+    }
+  }, [isAllComplete, quizComplete, showCourseComplete]);
+
   if (loadingArticle) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -169,22 +183,6 @@ export default function Quiz() {
       setQuizComplete(true);
     }
   };
-
-  const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
-  const nextArticle = allArticles[currentArticleIndex + 1];
-  const passed = score >= 3;
-  
-  // Calculate if all complete - use a stable check that includes this quiz being the last one
-  // We check if this is the last article AND user has completed all others before this one
-  const isLastArticle = currentArticleIndex === allArticles.length - 1;
-  const hasCompletedAllPreviousQuizzes = quizzesCompleted >= totalArticles - 1;
-  const isAllComplete = passed && isLastArticle && hasCompletedAllPreviousQuizzes;
-  
-  useEffect(() => {
-    if (isAllComplete && quizComplete && !showCourseComplete) {
-      setShowCourseComplete(true);
-    }
-  }, [isAllComplete, quizComplete, showCourseComplete]);
 
   if (loading) {
     return (
