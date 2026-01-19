@@ -22,6 +22,9 @@ interface AdminStats {
   avgQuizzesCompleted: number;
   mostReadArticles: { slug: string; count: number }[];
   quizStats: { slug: string; completions: number; averageScore: number }[];
+  dailySignups?: { date: string; count: number }[];
+  dailyActiveUsers?: { date: string; count: number }[];
+  topActiveUsers?: { userId: string; quizzesCompleted: number }[];
 }
 
 interface EmailPreferences {
@@ -446,6 +449,95 @@ export default function Admin() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Ingen quiz-data ännu</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Activity Charts */}
+            <div className="grid gap-4 md:grid-cols-2 mt-8">
+              {/* Daily Signups */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Nya användare (senaste 30 dagarna)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {stats.dailySignups && stats.dailySignups.length > 0 ? (
+                    <div className="space-y-2">
+                      {stats.dailySignups.slice(-10).map((day) => (
+                        <div key={day.date} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">
+                            {new Date(day.date).toLocaleDateString("sv-SE", { month: "short", day: "numeric" })}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="h-2 bg-primary rounded"
+                              style={{ width: `${Math.min(day.count * 20, 100)}px` }}
+                            />
+                            <span className="font-medium text-foreground w-8 text-right">
+                              {day.count}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ingen data ännu</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Daily Active Users */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Aktiva användare per dag</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {stats.dailyActiveUsers && stats.dailyActiveUsers.length > 0 ? (
+                    <div className="space-y-2">
+                      {stats.dailyActiveUsers.slice(-10).map((day) => (
+                        <div key={day.date} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">
+                            {new Date(day.date).toLocaleDateString("sv-SE", { month: "short", day: "numeric" })}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="h-2 bg-accent rounded"
+                              style={{ width: `${Math.min(day.count * 20, 100)}px` }}
+                            />
+                            <span className="font-medium text-foreground w-8 text-right">
+                              {day.count}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ingen data ännu</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Active Users */}
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Mest aktiva användare (quiz)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {stats.topActiveUsers && stats.topActiveUsers.length > 0 ? (
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                    {stats.topActiveUsers.map((user, index) => (
+                      <div key={user.userId} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        <span className="text-lg font-bold text-primary">#{index + 1}</span>
+                        <div className="text-sm">
+                          <span className="text-muted-foreground font-mono">{user.userId}</span>
+                          <div className="font-medium">{user.quizzesCompleted}/13 quiz</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Ingen data ännu</p>
                 )}
               </CardContent>
             </Card>
