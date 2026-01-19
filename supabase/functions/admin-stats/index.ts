@@ -83,14 +83,28 @@ Deno.serve(async (req) => {
       console.error("Error fetching users:", usersError);
     }
 
-    // 2. All progress data
+    // 2. All progress data with article info (use article_id, not article_slug)
     const { data: progressData, error: progressError } = await adminClient
       .from("user_progress")
-      .select("user_id, article_slug, article_read, quiz_completed, quiz_score");
+      .select("user_id, article_id, article_read, quiz_completed, quiz_score");
 
     if (progressError) {
       console.error("Error fetching progress:", progressError);
     }
+
+    // 3. Fetch articles to map article_id to slug
+    const { data: articlesData, error: articlesError } = await adminClient
+      .from("articles")
+      .select("id, slug, title");
+
+    if (articlesError) {
+      console.error("Error fetching articles:", articlesError);
+    }
+
+    const articleMap = new Map<string, { slug: string; title: string }>();
+    (articlesData || []).forEach(a => {
+      articleMap.set(a.id, { slug: a.slug, title: a.title });
+    });
 
     // Calculate stats
     const progress = progressData || [];
@@ -115,11 +129,13 @@ Deno.serve(async (req) => {
       ? Math.round((completedUsers / usersWithProgress) * 100) 
       : 0;
 
-    // Most read articles
+    // Most read articles (using article_id mapped to slug)
     const articleReadCounts = new Map<string, number>();
     progress.forEach(p => {
       if (p.article_read) {
-        articleReadCounts.set(p.article_slug, (articleReadCounts.get(p.article_slug) || 0) + 1);
+        const articleInfo = articleMap.get(p.article_id);
+        const slug = articleInfo?.slug || p.article_id;
+        articleReadCounts.set(slug, (articleReadCounts.get(slug) || 0) + 1);
       }
     });
     const mostReadArticles = Array.from(articleReadCounts.entries())
@@ -131,10 +147,12 @@ Deno.serve(async (req) => {
     const quizResults = new Map<string, { total: number; scores: number[] }>();
     progress.forEach(p => {
       if (p.quiz_completed && p.quiz_score !== null) {
-        const current = quizResults.get(p.article_slug) || { total: 0, scores: [] };
+        const articleInfo = articleMap.get(p.article_id);
+        const slug = articleInfo?.slug || p.article_id;
+        const current = quizResults.get(slug) || { total: 0, scores: [] };
         current.total++;
         current.scores.push(p.quiz_score);
-        quizResults.set(p.article_slug, current);
+        quizResults.set(slug, current);
       }
     });
     const quizStats = Array.from(quizResults.entries())
@@ -153,6 +171,71 @@ Deno.serve(async (req) => {
       ? Math.round(Array.from(userProgressMap.values()).reduce((sum, p) => sum + p.quizzes, 0) / usersWithProgress * 10) / 10
       : 0;
 
+    // 4. User activity - signups per day (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: recentProfiles, error: profilesError } = await adminClient
+      .from("profiles")
+      .select("created_at")
+      .gte("created_at", thirtyDaysAgo.toISOString());
+
+    if (profilesError) {
+      console.error("Error fetching recent profiles:", profilesError);
+    }
+
+    // Group signups by day
+    const signupsByDay = new Map<string, number>();
+    (recentProfiles || []).forEach(p => {
+      const day = p.created_at.split("T")[0];
+      signupsByDay.set(day, (signupsByDay.get(day) || 0) + 1);
+    });
+
+    const dailySignups = Array.from(signupsByDay.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, count]) => ({ date, count }));
+
+    // 5. User engagement - quiz activity per day (last 30 days)
+    const { data: recentProgress, error: recentProgressError } = await adminClient
+      .from("user_progress")
+      .select("user_id, updated_at, quiz_completed")
+      .gte("updated_at", thirtyDaysAgo.toISOString())
+      .eq("quiz_completed", true);
+
+    if (recentProgressError) {
+      console.error("Error fetching recent progress:", recentProgressError);
+    }
+
+    // Active users per day (users who completed a quiz)
+    const activeUsersByDay = new Map<string, Set<string>>();
+    (recentProgress || []).forEach(p => {
+      const day = p.updated_at.split("T")[0];
+      if (!activeUsersByDay.has(day)) {
+        activeUsersByDay.set(day, new Set());
+      }
+      activeUsersByDay.get(day)!.add(p.user_id);
+    });
+
+    const dailyActiveUsers = Array.from(activeUsersByDay.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, users]) => ({ date, count: users.size }));
+
+    // 6. Top active users (most quizzes completed)
+    const userQuizCounts = new Map<string, number>();
+    progress.forEach(p => {
+      if (p.quiz_completed) {
+        userQuizCounts.set(p.user_id, (userQuizCounts.get(p.user_id) || 0) + 1);
+      }
+    });
+
+    const topActiveUsers = Array.from(userQuizCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([userId, quizzes]) => ({ 
+        userId: userId.substring(0, 8) + "...", // Anonymize
+        quizzesCompleted: quizzes 
+      }));
+
     const stats = {
       totalUsers: totalUsers || 0,
       usersWithProgress,
@@ -162,6 +245,9 @@ Deno.serve(async (req) => {
       avgQuizzesCompleted,
       mostReadArticles,
       quizStats,
+      dailySignups,
+      dailyActiveUsers,
+      topActiveUsers,
     };
 
     console.log("Stats calculated successfully");

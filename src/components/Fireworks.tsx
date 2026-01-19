@@ -33,11 +33,10 @@ const COLORS = [
 
 export function Fireworks({ duration = 4000 }: { duration?: number }) {
   const [fireworks, setFireworks] = useState<Firework[]>([]);
-  const [isActive, setIsActive] = useState(true);
+  const [isLaunching, setIsLaunching] = useState(true);
+  const [containerOpacity, setContainerOpacity] = useState(1);
 
   useEffect(() => {
-    if (!isActive) return;
-
     const createFirework = () => {
       const id = Date.now() + Math.random();
       const x = Math.random() * 100;
@@ -71,19 +70,22 @@ export function Fireworks({ duration = 4000 }: { duration?: number }) {
           speedX: Math.cos(angle) * speed,
           speedY: Math.sin(angle) * speed,
           opacity: 1,
-          decay: 0.015 + Math.random() * 0.01,
+          decay: 0.02 + Math.random() * 0.015, // Slightly faster decay
         });
       }
       return particles;
     };
 
     // Launch fireworks at intervals
-    const launchInterval = setInterval(() => {
-      if (!isActive) return;
-      const count = 1 + Math.floor(Math.random() * 2);
-      const newFireworks = Array.from({ length: count }, createFirework);
-      setFireworks((prev) => [...prev, ...newFireworks]);
-    }, 300);
+    let launchInterval: ReturnType<typeof setInterval> | null = null;
+    
+    if (isLaunching) {
+      launchInterval = setInterval(() => {
+        const count = 1 + Math.floor(Math.random() * 2);
+        const newFireworks = Array.from({ length: count }, createFirework);
+        setFireworks((prev) => [...prev, ...newFireworks]);
+      }, 300);
+    }
 
     // Animation loop
     const animationInterval = setInterval(() => {
@@ -103,16 +105,18 @@ export function Fireworks({ duration = 4000 }: { duration?: number }) {
               }
               return { ...fw, y: newY };
             } else {
-              // Update particles
+              // Update particles with smoother fade
               const updatedParticles = fw.particles
                 .map((p) => ({
                   ...p,
                   x: p.x + p.speedX * 0.3,
                   y: p.y + p.speedY * 0.3,
+                  speedX: p.speedX * 0.98, // Slow down horizontally
                   speedY: p.speedY + 0.05, // gravity
                   opacity: p.opacity - p.decay,
+                  size: p.size * 0.99, // Shrink particles as they fade
                 }))
-                .filter((p) => p.opacity > 0);
+                .filter((p) => p.opacity > 0.05); // Remove almost invisible
 
               return { ...fw, particles: updatedParticles };
             }
@@ -121,23 +125,44 @@ export function Fireworks({ duration = 4000 }: { duration?: number }) {
       });
     }, 16);
 
-    // Stop after duration
-    const timeout = setTimeout(() => {
-      setIsActive(false);
-      clearInterval(launchInterval);
+    // Stop launching new fireworks after duration
+    const stopLaunchTimeout = setTimeout(() => {
+      setIsLaunching(false);
+      if (launchInterval) clearInterval(launchInterval);
     }, duration);
 
-    return () => {
-      clearInterval(launchInterval);
-      clearInterval(animationInterval);
-      clearTimeout(timeout);
-    };
-  }, [isActive, duration]);
+    // Start fade out after duration + buffer for last explosions
+    const fadeOutTimeout = setTimeout(() => {
+      // Gradual fade out of the entire container
+      const fadeSteps = 20;
+      const fadeInterval = setInterval(() => {
+        setContainerOpacity((prev) => {
+          const newOpacity = prev - (1 / fadeSteps);
+          if (newOpacity <= 0) {
+            clearInterval(fadeInterval);
+            return 0;
+          }
+          return newOpacity;
+        });
+      }, 50);
+    }, duration + 500);
 
-  if (!isActive && fireworks.length === 0) return null;
+    return () => {
+      if (launchInterval) clearInterval(launchInterval);
+      clearInterval(animationInterval);
+      clearTimeout(stopLaunchTimeout);
+      clearTimeout(fadeOutTimeout);
+    };
+  }, [isLaunching, duration]);
+
+  // Hide completely when faded out and no fireworks left
+  if (containerOpacity <= 0 && fireworks.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+    <div 
+      className="fixed inset-0 pointer-events-none z-50 overflow-hidden transition-opacity duration-500"
+      style={{ opacity: containerOpacity }}
+    >
       {fireworks.map((fw) => (
         <div key={fw.id}>
           {/* Rising trail */}
@@ -164,8 +189,9 @@ export function Fireworks({ duration = 4000 }: { duration?: number }) {
                 height: p.size,
                 background: p.color,
                 opacity: p.opacity,
-                boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+                boxShadow: `0 0 ${p.size}px ${p.color}`,
                 transform: "translate(-50%, -50%)",
+                transition: "opacity 0.1s ease-out",
               }}
             />
           ))}
