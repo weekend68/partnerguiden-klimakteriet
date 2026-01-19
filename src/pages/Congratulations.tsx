@@ -12,21 +12,24 @@ import { SEO } from "@/components/SEO";
 
 export default function Congratulations() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
+  const { user, loading: authLoading } = useAuth();
+  const { articlesRead, quizzesCompleted, totalArticles, overallProgress, loading: progressLoading } = useProgress();
   const [copied, setCopied] = useState(false);
   const [showFireworks, setShowFireworks] = useState(true);
 
   const isComplete = articlesRead === totalArticles && quizzesCompleted === totalArticles;
 
-  // Redirect if not complete
+  // Redirect if not complete - but wait for data to load first!
   useEffect(() => {
+    // Don't redirect while still loading
+    if (authLoading || progressLoading) return;
+    
     if (!user) {
       navigate("/auth");
     } else if (!isComplete && overallProgress < 100) {
       navigate("/artiklar");
     }
-  }, [user, isComplete, overallProgress, navigate]);
+  }, [user, isComplete, overallProgress, navigate, authLoading, progressLoading]);
 
   // Hide fireworks after a while
   useEffect(() => {
@@ -61,6 +64,15 @@ export default function Congratulations() {
 
     window.open(urls[platform], "_blank", "width=600,height=400");
   };
+
+  // Show loading while checking auth/progress
+  if (authLoading || progressLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!user || !isComplete) {
     return null;
