@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,7 +29,7 @@ export default function Quiz() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { markQuizCompleted, overallProgress, totalArticles, articlesRead, quizzesCompleted } = useProgress();
+  const { markQuizCompleted, progress, totalArticles, refetch } = useProgress();
   
   const [article, setArticle] = useState<Article | null>(null);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
@@ -44,8 +44,10 @@ export default function Quiz() {
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
   
-  // Track if we've shown the completion state to prevent re-renders from changing it
-  const [showCourseComplete, setShowCourseComplete] = useState(false);
+  // CRITICAL: Track completion state LOCALLY to avoid stale state issues
+  // This becomes true when we successfully save the final quiz result
+  const [justCompletedCourse, setJustCompletedCourse] = useState(false);
+  const [savingResult, setSavingResult] = useState(false);
 
   // Fetch article from database
   useEffect(() => {
@@ -111,27 +113,62 @@ export default function Quiz() {
     fetchQuiz();
   }, [article, loadingArticle]);
 
-  // Save quiz result when complete (only if passed with at least 3/5)
-  useEffect(() => {
-    if (quizComplete && user && article && score >= 3) {
-      markQuizCompleted(article.id, score);
-    }
-  }, [quizComplete, user, article, score, markQuizCompleted]);
-
-  // Calculate completion state - must be before any conditional returns
+  // Calculate derived values
   const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
   const nextArticle = allArticles[currentArticleIndex + 1];
   const passed = score >= 3;
-  const isLastArticle = currentArticleIndex === allArticles.length - 1;
-  // Include the current quiz in the count since quizzesCompleted hasn't updated yet
-  const effectiveQuizzesCompleted = quizComplete && passed ? quizzesCompleted + 1 : quizzesCompleted;
-  const isAllComplete = passed && isLastArticle && effectiveQuizzesCompleted >= totalArticles;
+  const isLastArticle = currentArticleIndex === allArticles.length - 1 && allArticles.length > 0;
   
+  // Count how many quizzes were completed BEFORE this one (from progress state)
+  const previouslyCompletedQuizzes = useMemo(() => {
+    if (!article) return 0;
+    return progress.filter(p => p.quiz_completed && p.article_id !== article.id).length;
+  }, [progress, article]);
+
+  // CRITICAL: Save quiz result and detect course completion
   useEffect(() => {
-    if (isAllComplete && quizComplete && !showCourseComplete) {
-      setShowCourseComplete(true);
-    }
-  }, [isAllComplete, quizComplete, showCourseComplete]);
+    const saveResult = async () => {
+      if (!quizComplete || !user || !article || !passed || savingResult) return;
+      
+      // Check if this quiz was already completed before
+      const wasAlreadyCompleted = progress.some(
+        p => p.article_id === article.id && p.quiz_completed
+      );
+      
+      if (wasAlreadyCompleted) {
+        // Already completed, no need to save again
+        return;
+      }
+
+      setSavingResult(true);
+      
+      try {
+        const result = await markQuizCompleted(article.id, score);
+        
+        if (!result.error) {
+          // After this quiz, total completed = previous + 1
+          const totalAfterThis = previouslyCompletedQuizzes + 1;
+          
+          console.log("Quiz saved. Total completed:", totalAfterThis, "of", totalArticles, "isLastArticle:", isLastArticle);
+          
+          // If this was the last needed quiz, trigger course completion
+          if (isLastArticle && totalAfterThis >= totalArticles) {
+            console.log("COURSE COMPLETE! Showing fireworks.");
+            setJustCompletedCourse(true);
+          }
+          
+          // Refetch progress to update state
+          refetch();
+        }
+      } catch (err) {
+        console.error("Error saving quiz result:", err);
+      } finally {
+        setSavingResult(false);
+      }
+    };
+    
+    saveResult();
+  }, [quizComplete, user, article, passed, score, markQuizCompleted, previouslyCompletedQuizzes, totalArticles, isLastArticle, savingResult, progress, refetch]);
 
   if (loadingArticle) {
     return (
@@ -169,7 +206,6 @@ export default function Quiz() {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
       setHasAnswered(false);
-      // Scroll to top for mobile users
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setQuizComplete(true);
@@ -229,22 +265,25 @@ export default function Quiz() {
 
   if (quizComplete) {
     const percentage = Math.round((score / questions.length) * 100);
-    const displayCourseComplete = showCourseComplete || isAllComplete;
+    // Calculate progress for display (using current known progress + this quiz if passed and logged in)
+    const displayProgress = user && passed 
+      ? Math.round(((previouslyCompletedQuizzes + 1) / totalArticles) * 100)
+      : Math.round((previouslyCompletedQuizzes / totalArticles) * 100);
 
     return (
       <div className="min-h-screen bg-background">
         {/* Show fireworks when completing the entire course */}
-        {displayCourseComplete && <Fireworks duration={5000} />}
+        {justCompletedCourse && <Fireworks duration={5000} />}
         
         <div className="container max-w-2xl mx-auto px-4 py-12">
-          <Card className={`bg-card border-border ${displayCourseComplete ? 'relative overflow-hidden' : ''}`}>
+          <Card className={`bg-card border-border ${justCompletedCourse ? 'relative overflow-hidden' : ''}`}>
             {/* Special celebration header for course completion */}
-            {displayCourseComplete && (
+            {justCompletedCourse && (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
             )}
             
             <CardContent className="p-8 text-center relative">
-              {displayCourseComplete ? (
+              {justCompletedCourse ? (
                 <>
                   <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6 animate-scale-in">
                     <Trophy className="h-10 w-10 text-primary" />
@@ -302,7 +341,7 @@ export default function Quiz() {
 
                   {user && passed && (
                     <p className="text-sm text-muted-foreground mb-6">
-                      Din framsteg: {overallProgress}% av kursen avklarad
+                      Din framsteg: {displayProgress}% av kursen avklarad
                     </p>
                   )}
 

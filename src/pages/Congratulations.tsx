@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
-import { Trophy, Share2, Twitter, Facebook, Linkedin, Copy, Check, Home, Heart, Users, BookOpen } from "lucide-react";
+import { Trophy, Share2, Twitter, Facebook, Linkedin, Copy, Check, Home, Heart, Users, BookOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Footer } from "@/components/Footer";
 import { Fireworks } from "@/components/Fireworks";
@@ -13,23 +13,60 @@ import { SEO } from "@/components/SEO";
 export default function Congratulations() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { articlesRead, quizzesCompleted, totalArticles, overallProgress, loading: progressLoading } = useProgress();
+  const { quizzesCompleted, totalArticles, loading: progressLoading, refetch } = useProgress();
   const [copied, setCopied] = useState(false);
   const [showFireworks, setShowFireworks] = useState(true);
+  const [hasVerifiedAccess, setHasVerifiedAccess] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const isComplete = articlesRead === totalArticles && quizzesCompleted === totalArticles;
+  // CRITICAL: Check completion after all loading is done
+  // Use quizzesCompleted === totalArticles as the ONLY completion check
+  const isComplete = quizzesCompleted >= totalArticles && totalArticles > 0;
 
-  // Redirect if not complete - but wait for data to load first!
+  // On mount, refetch progress to ensure we have fresh data
   useEffect(() => {
-    // Don't redirect while still loading
-    if (authLoading || progressLoading) return;
-    
-    if (!user) {
-      navigate("/auth");
-    } else if (!isComplete && overallProgress < 100) {
-      navigate("/artiklar");
+    if (!authLoading && user) {
+      refetch();
     }
-  }, [user, isComplete, overallProgress, navigate, authLoading, progressLoading]);
+  }, [authLoading, user, refetch]);
+
+  // Handle access verification and redirects
+  useEffect(() => {
+    // Wait for both auth and progress to finish loading
+    if (authLoading || progressLoading) {
+      return;
+    }
+
+    // Not logged in - redirect to auth
+    if (!user) {
+      console.log("Congratulations: No user, redirecting to /auth");
+      setIsRedirecting(true);
+      navigate("/auth", { replace: true });
+      return;
+    }
+
+    // Check completion
+    if (isComplete) {
+      console.log("Congratulations: Access verified! quizzesCompleted:", quizzesCompleted, "totalArticles:", totalArticles);
+      setHasVerifiedAccess(true);
+    } else {
+      // Not complete - but give it a moment in case progress just updated
+      // This handles the race condition when navigating directly after quiz completion
+      console.log("Congratulations: Not complete yet. quizzesCompleted:", quizzesCompleted, "totalArticles:", totalArticles);
+      
+      // Wait 500ms and check again (progress might still be syncing)
+      const timer = setTimeout(() => {
+        // Re-check after brief delay
+        if (!isComplete) {
+          console.log("Congratulations: Still not complete after delay, redirecting to /artiklar");
+          setIsRedirecting(true);
+          navigate("/artiklar", { replace: true });
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading, progressLoading, user, isComplete, navigate, quizzesCompleted, totalArticles]);
 
   // Hide fireworks after a while
   useEffect(() => {
@@ -65,17 +102,16 @@ export default function Congratulations() {
     window.open(urls[platform], "_blank", "width=600,height=400");
   };
 
-  // Show loading while checking auth/progress
-  if (authLoading || progressLoading) {
+  // Show loading while checking auth/progress OR while redirecting
+  if (authLoading || progressLoading || isRedirecting || !hasVerifiedAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-muted-foreground text-sm">Laddar...</p>
+        </div>
       </div>
     );
-  }
-
-  if (!user || !isComplete) {
-    return null;
   }
 
   return (
