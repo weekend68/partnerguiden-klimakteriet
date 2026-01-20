@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { useLocation } from "react-router-dom";
 
 interface SEOProps {
   title?: string;
@@ -26,9 +27,13 @@ export const SEO = ({
   modifiedTime,
   noIndex = false,
 }: SEOProps) => {
+  const location = useLocation();
   const fullTitle = title ? `${title} | Partnerguiden: Klimakteriet` : DEFAULT_TITLE;
-  const fullUrl = url ? `${SITE_URL}${url}` : SITE_URL;
-
+  
+  // For canonical URL: use provided url, or derive from current path (without query strings)
+  // This ensures each page has a self-referencing canonical
+  const canonicalPath = url ?? location.pathname;
+  const fullUrl = canonicalPath ? `${SITE_URL}${canonicalPath}` : SITE_URL;
   return (
     <Helmet>
       {/* Primary Meta Tags */}

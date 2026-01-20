@@ -10,11 +10,16 @@ interface Progress {
 }
 
 export function useProgress() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [progress, setProgress] = useState<Progress[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProgress = useCallback(async () => {
+    // Don't fetch or set loading=false until auth is resolved
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setProgress([]);
       setLoading(false);
@@ -32,7 +37,7 @@ export function useProgress() {
       setProgress(data || []);
     }
     setLoading(false);
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchProgress();
