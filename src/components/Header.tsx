@@ -58,9 +58,9 @@ const Header = () => {
             </div>
           ) : (
             <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link to="/auth" aria-label="Logga in">
+              <Link to="/auth" aria-label="Skapa konto">
                 <User className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logga in</span>
+                <span className="hidden sm:inline">Skapa konto</span>
               </Link>
             </Button>
           )}
