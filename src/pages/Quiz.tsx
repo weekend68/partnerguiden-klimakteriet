@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -118,57 +118,77 @@ export default function Quiz() {
   const nextArticle = allArticles[currentArticleIndex + 1];
   const passed = score >= 3;
   const isLastArticle = currentArticleIndex === allArticles.length - 1 && allArticles.length > 0;
-  
-  // Count how many quizzes were completed BEFORE this one (from progress state)
-  const previouslyCompletedQuizzes = useMemo(() => {
-    if (!article) return 0;
-    return progress.filter(p => p.quiz_completed && p.article_id !== article.id).length;
-  }, [progress, article]);
 
   // CRITICAL: Save quiz result and detect course completion
+  // This effect runs when quiz is completed and handles ALL completion logic
   useEffect(() => {
-    const saveResult = async () => {
-      if (!quizComplete || !user || !article || !passed || savingResult) return;
+    const saveResultAndCheckCompletion = async () => {
+      if (!quizComplete || !article || !passed || savingResult) return;
       
-      // Check if this quiz was already completed before
-      const wasAlreadyCompleted = progress.some(
-        p => p.article_id === article.id && p.quiz_completed
-      );
-      
-      if (wasAlreadyCompleted) {
-        // Already completed, no need to save again
-        return;
-      }
-
-      setSavingResult(true);
-      
-      try {
-        const result = await markQuizCompleted(article.id, score);
+      // For logged-in users, save to database
+      if (user) {
+        // Check if this quiz was already completed before
+        const wasAlreadyCompleted = progress.some(
+          p => p.article_id === article.id && p.quiz_completed
+        );
         
-        if (!result.error) {
-          // After this quiz, total completed = previous + 1
-          const totalAfterThis = previouslyCompletedQuizzes + 1;
+        if (!wasAlreadyCompleted) {
+          setSavingResult(true);
           
-          console.log("Quiz saved. Total completed:", totalAfterThis, "of", totalArticles, "isLastArticle:", isLastArticle);
+          try {
+            const result = await markQuizCompleted(article.id, score);
+            
+            if (!result.error) {
+              // Refetch to get updated progress
+              await refetch();
+            }
+          } catch (err) {
+            console.error("Error saving quiz result:", err);
+          } finally {
+            setSavingResult(false);
+          }
+        }
+      }
+      
+      // CRITICAL: Check for course completion SEPARATELY
+      // This check uses isLastArticle which is purely derived from allArticles array
+      // If this IS the last article and we passed, we completed the course!
+      if (isLastArticle && passed) {
+        // For logged-in users, verify all OTHER quizzes are done
+        if (user) {
+          // Count completed quizzes excluding current article
+          const otherQuizzesCompleted = progress.filter(
+            p => p.quiz_completed && p.article_id !== article.id
+          ).length;
           
-          // If this was the last needed quiz, trigger course completion
-          if (isLastArticle && totalAfterThis >= totalArticles) {
+          // We need totalArticles - 1 OTHER quizzes completed (since we just completed this one)
+          const allOthersComplete = otherQuizzesCompleted >= totalArticles - 1;
+          
+          console.log("Course completion check:", {
+            isLastArticle,
+            passed,
+            otherQuizzesCompleted,
+            neededOthers: totalArticles - 1,
+            allOthersComplete
+          });
+          
+          if (allOthersComplete) {
             console.log("COURSE COMPLETE! Showing fireworks.");
             setJustCompletedCourse(true);
           }
-          
-          // Refetch progress to update state
-          refetch();
+        } else {
+          // For non-logged-in users on last article who passed, show celebration
+          // (they can't track progress anyway)
+          console.log("Non-logged user completed last quiz - showing fireworks");
+          setJustCompletedCourse(true);
         }
-      } catch (err) {
-        console.error("Error saving quiz result:", err);
-      } finally {
-        setSavingResult(false);
       }
     };
     
-    saveResult();
-  }, [quizComplete, user, article, passed, score, markQuizCompleted, previouslyCompletedQuizzes, totalArticles, isLastArticle, savingResult, progress, refetch]);
+    saveResultAndCheckCompletion();
+    // NOTE: We intentionally exclude 'progress' from deps to avoid re-running when it updates
+    // The refetch() call updates progress, but we don't want to re-check completion after that
+  }, [quizComplete, article, passed, savingResult, user, markQuizCompleted, score, refetch, isLastArticle, totalArticles]);
 
   if (loadingArticle) {
     return (
@@ -265,10 +285,11 @@ export default function Quiz() {
 
   if (quizComplete) {
     const percentage = Math.round((score / questions.length) * 100);
-    // Calculate progress for display (using current known progress + this quiz if passed and logged in)
-    const displayProgress = user && passed 
-      ? Math.round(((previouslyCompletedQuizzes + 1) / totalArticles) * 100)
-      : Math.round((previouslyCompletedQuizzes / totalArticles) * 100);
+    // Calculate progress for display based on current progress state
+    const completedQuizzes = progress.filter(p => p.quiz_completed).length;
+    const displayProgress = user 
+      ? Math.round((completedQuizzes / totalArticles) * 100)
+      : 0;
 
     return (
       <div className="min-h-screen bg-background">
