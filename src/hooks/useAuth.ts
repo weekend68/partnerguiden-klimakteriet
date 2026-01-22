@@ -30,7 +30,7 @@ export function useAuth() {
   const signUp = async (email: string, password: string, displayName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -40,6 +40,23 @@ export function useAuth() {
         },
       },
     });
+
+    // If signup successful, trigger welcome email
+    if (!error && data.user) {
+      try {
+        await supabase.functions.invoke("send-welcome-email", {
+          body: {
+            user_id: data.user.id,
+            email: email,
+            display_name: displayName,
+          },
+        });
+      } catch (emailError) {
+        // Don't fail signup if welcome email fails
+        console.error("Failed to send welcome email:", emailError);
+      }
+    }
+
     return { error };
   };
 
