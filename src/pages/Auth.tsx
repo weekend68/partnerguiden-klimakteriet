@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +54,36 @@ export default function Auth() {
       navigate("/");
     }
 
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      toast({
+        title: "Ange din e-post",
+        description: "Fyll i din e-postadress ovan så skickar vi en återställningslänk.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+
+    if (error) {
+      toast({
+        title: "Kunde inte skicka länk",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Återställningslänk skickad",
+        description: "Kolla din e-post för att återställa lösenordet.",
+      });
+    }
     setLoading(false);
   };
 
@@ -238,7 +269,16 @@ export default function Auth() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="login-password">Lösenord</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="login-password">Lösenord</Label>
+                          <button
+                            type="button"
+                            onClick={() => handleForgotPassword()}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Glömt lösenord?
+                          </button>
+                        </div>
                         <Input
                           id="login-password"
                           type="password"
