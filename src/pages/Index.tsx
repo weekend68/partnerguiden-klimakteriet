@@ -165,7 +165,7 @@ const Index = () => {
             </div>
             {!user && (
               <Link to="/auth" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mt-6 animate-fade-in stagger-3">
-                Få kursen i din inbox – skapa ett gratis konto
+                Få kursen i din inbox varje dag – börja här
               </Link>
             )}
           </div>
