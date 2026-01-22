@@ -68,8 +68,13 @@ export default function Auth() {
     }
 
     setLoading(true);
+    // Always use production domain for password reset redirect
+    const redirectUrl = import.meta.env.PROD 
+      ? "https://partnerguiden.se/auth" 
+      : `${window.location.origin}/auth`;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: redirectUrl,
     });
 
     if (error) {
