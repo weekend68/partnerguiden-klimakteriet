@@ -36,8 +36,9 @@ const Article = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { getArticleProgress, markArticleRead, articlesRead, quizzesCompleted, totalArticles, overallProgress } = useProgress();
-  
+  const { getArticleProgress, markArticleRead, articlesRead, quizzesCompleted, totalArticles, overallProgress } =
+    useProgress();
+
   const [article, setArticle] = useState<Article | null>(null);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -47,12 +48,14 @@ const Article = () => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id, slug, title, excerpt, content, image_url, image_filename, image_alt, meta_title, published_at, updated_at")
+        .select(
+          "id, slug, title, excerpt, content, image_url, image_filename, image_alt, meta_title, published_at, updated_at",
+        )
         .order("sort_order", { ascending: true });
 
       if (!error && data) {
         setAllArticles(data);
-        const currentArticle = data.find(a => a.slug === slug);
+        const currentArticle = data.find((a) => a.slug === slug);
         setArticle(currentArticle || null);
 
         // Fetch FAQs for current article
@@ -62,7 +65,7 @@ const Article = () => {
             .select("id, question, answer, sort_order")
             .eq("article_id", currentArticle.id)
             .order("sort_order", { ascending: true });
-          
+
           if (faqData) {
             setFaqs(faqData);
           }
@@ -76,7 +79,7 @@ const Article = () => {
 
   const progress = article ? getArticleProgress(article.id) : null;
 
-  const currentIndex = allArticles.findIndex(a => a.slug === slug);
+  const currentIndex = allArticles.findIndex((a) => a.slug === slug);
   const nextArticle = allArticles[currentIndex + 1];
   const prevArticle = allArticles[currentIndex - 1];
 
@@ -95,7 +98,7 @@ const Article = () => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight;
       const pageHeight = document.documentElement.scrollHeight;
-      
+
       // Mark as read when scrolled 80% of the page
       if (scrollPosition >= pageHeight * 0.8) {
         markArticleRead(article.id);
@@ -144,7 +147,7 @@ const Article = () => {
         author: {
           "@type": "Organization",
           name: "Partnerguiden",
-          url: "https://partnerguiden.se/om"
+          url: "https://partnerguiden.se/om",
         },
         publisher: {
           "@type": "Organization",
@@ -152,13 +155,13 @@ const Article = () => {
           url: "https://partnerguiden.se",
           logo: {
             "@type": "ImageObject",
-            url: "https://partnerguiden.se/favicon.ico"
-          }
+            url: "https://partnerguiden.se/favicon.ico",
+          },
         },
         mainEntityOfPage: {
           "@type": "WebPage",
-          "@id": `https://partnerguiden.se/artikel/${article.slug}`
-        }
+          "@id": `https://partnerguiden.se/artikel/${article.slug}`,
+        },
       },
       {
         "@type": "BreadcrumbList",
@@ -167,35 +170,39 @@ const Article = () => {
             "@type": "ListItem",
             position: 1,
             name: "Hem",
-            item: "https://partnerguiden.se"
+            item: "https://partnerguiden.se",
           },
           {
             "@type": "ListItem",
             position: 2,
             name: "Artiklar",
-            item: "https://partnerguiden.se/artiklar"
+            item: "https://partnerguiden.se/artiklar",
           },
           {
             "@type": "ListItem",
             position: 3,
             name: article.title,
-            item: `https://partnerguiden.se/artikel/${article.slug}`
-          }
-        ]
+            item: `https://partnerguiden.se/artikel/${article.slug}`,
+          },
+        ],
       },
       // Only include FAQPage if there are FAQs
-      ...(faqs.length > 0 ? [{
-        "@type": "FAQPage",
-        mainEntity: faqs.map((faq) => ({
-          "@type": "Question",
-          name: faq.question,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: faq.answer
-          }
-        }))
-      }] : [])
-    ]
+      ...(faqs.length > 0
+        ? [
+            {
+              "@type": "FAQPage",
+              mainEntity: faqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: faq.answer,
+                },
+              })),
+            },
+          ]
+        : []),
+    ],
   };
 
   return (
@@ -211,10 +218,7 @@ const Article = () => {
         modifiedTime={article.updated_at}
       />
       {/* Article & Breadcrumb Schema.org JSON-LD */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredDataJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredDataJsonLd) }} />
       <Header />
 
       {/* Progress Banner (if logged in) */}
@@ -241,8 +245,8 @@ const Article = () => {
       )}
       {/* Article Header Image */}
       <div className="w-full h-64 md:h-80 lg:h-96 overflow-hidden relative">
-        <img 
-          src={getImageUrl(article)} 
+        <img
+          src={getImageUrl(article)}
           alt={article.image_alt || article.title}
           className="w-full h-full object-cover"
         />
@@ -286,7 +290,10 @@ const Article = () => {
               <ChevronRight className="h-4 w-4" />
             </li>
             <li>
-              <span className="text-foreground font-medium truncate max-w-[200px] inline-block align-bottom" title={article.title}>
+              <span
+                className="text-foreground font-medium truncate max-w-[200px] inline-block align-bottom"
+                title={article.title}
+              >
                 {article.title}
               </span>
             </li>
@@ -297,9 +304,7 @@ const Article = () => {
           Artikel {currentIndex + 1} av {allArticles.length}
         </div>
 
-        <h1 className="font-serif text-3xl md:text-4xl font-medium mb-6 text-balance">
-          {article.title}
-        </h1>
+        <h1 className="font-serif text-3xl md:text-4xl font-medium mb-6 text-balance">{article.title}</h1>
 
         {/* Article Content */}
         <article className="prose-relateify text-lg leading-relaxed">
@@ -311,29 +316,26 @@ const Article = () => {
               h3: ({ children }) => (
                 <h3 className="font-serif text-xl font-medium mt-8 mb-3 text-foreground">{children}</h3>
               ),
-              p: ({ children }) => (
-                <p className="mb-5 text-foreground/90">{children}</p>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-foreground">{children}</strong>
-              ),
-              em: ({ children }) => (
-                <em className="italic">{children}</em>
-              ),
-              ul: ({ children }) => (
-                <ul className="my-5 pl-6 space-y-2 list-disc">{children}</ul>
-              ),
-              ol: ({ children }) => (
-                <ol className="my-5 pl-6 space-y-2 list-decimal">{children}</ol>
-              ),
-              li: ({ children }) => (
-                <li className="text-foreground/90">{children}</li>
-              ),
+              p: ({ children }) => <p className="mb-5 text-foreground/90">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              ul: ({ children }) => <ul className="my-5 pl-6 space-y-2 list-disc">{children}</ul>,
+              ol: ({ children }) => <ol className="my-5 pl-6 space-y-2 list-decimal">{children}</ol>,
+              li: ({ children }) => <li className="text-foreground/90">{children}</li>,
               blockquote: ({ children }) => (
-                <blockquote className="border-l-4 border-primary/30 pl-5 my-6 italic text-muted-foreground">{children}</blockquote>
+                <blockquote className="border-l-4 border-primary/30 pl-5 my-6 italic text-muted-foreground">
+                  {children}
+                </blockquote>
               ),
               a: ({ href, children }) => (
-                <a href={href} className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>
+                <a
+                  href={href}
+                  className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {children}
+                </a>
               ),
               hr: () => <hr className="my-8 border-border" />,
             }}
@@ -341,27 +343,6 @@ const Article = () => {
             {article.content}
           </ReactMarkdown>
         </article>
-
-        {/* CTA for non-logged-in users */}
-        {!user && (
-          <div className="mt-8 p-6 bg-primary/5 rounded-lg border border-primary/20">
-            <h3 className="font-serif text-lg font-medium mb-2 text-center">
-              Få kursen i din inbox varje dag
-            </h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Skapa ett gratis konto och få ett mail per dag med nästa artikel – så behöver du inte komma ihåg att komma tillbaka.
-            </p>
-            <div className="text-center">
-              <Link 
-                to="/auth" 
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-colors"
-              >
-                <Mail className="h-4 w-4" />
-                Börja här – skapa konto
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Quiz CTA */}
         <div className="mt-12 p-6 bg-muted/50 rounded-lg border border-border">
@@ -374,10 +355,9 @@ const Article = () => {
                 {progress?.quiz_completed ? "Quiz avklarat!" : "Testa din förståelse"}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {progress?.quiz_completed 
+                {progress?.quiz_completed
                   ? `Du fick ${progress.quiz_score} av 5 rätt. Vill du försöka igen?`
-                  : "Ta ett kort quiz med 5 frågor baserat på artikeln du just läst."
-                }
+                  : "Ta ett kort quiz med 5 frågor baserat på artikeln du just läst."}
               </p>
               <Button onClick={() => navigate(`/quiz/${article.slug}`)}>
                 {progress?.quiz_completed ? "Ta quiz igen" : "Ta quiz"}
@@ -386,6 +366,26 @@ const Article = () => {
             </div>
           </div>
         </div>
+
+        {/* CTA for non-logged-in users */}
+        {!user && (
+          <div className="mt-8 p-6 bg-primary/5 rounded-lg border border-primary/20">
+            <h3 className="font-serif text-lg font-medium mb-2 text-center">Få kursen i din inbox varje dag</h3>
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              Skapa ett gratis konto och få ett mail per dag med nästa artikel – så behöver du inte komma ihåg att komma
+              tillbaka.
+            </p>
+            <div className="text-center">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-colors"
+              >
+                <Mail className="h-4 w-4" />
+                Börja här – skapa konto
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-between">
@@ -397,7 +397,9 @@ const Article = () => {
               <ArrowLeft className="h-4 w-4" />
               <span className="text-sm">Föregående: {prevArticle.title}</span>
             </Link>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
           {nextArticle && (
             <Link
               to={`/artikel/${nextArticle.slug}`}
