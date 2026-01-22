@@ -5,8 +5,8 @@ import { SEO } from "@/components/SEO";
 export default function About() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO 
-        title="Om Partnerguiden" 
+      <SEO
+        title="Om Partnerguiden"
         description="Partnerguiden: Klimakteriet är skapad för dig som vill förstå och stötta din partner genom klimakteriet."
         url="/om"
       />
@@ -45,7 +45,7 @@ export default function About() {
             Partnerguiden är ett ideellt projekt skapat med målet att öka förståelsen för klimakteriet och stärka
             relationer under denna livsfas.
           </p>
-          <p>Kontakta mig gärna på johan@partnerguiden.se om du har feedback på tjänsten.</p>
+          <p>Kontakta mig gärna på hello.johan.moller (a) gmail.com om du har feedback på tjänsten.</p>
 
           <p className="text-muted-foreground mt-12">
             Tack för att du tar dig tid att lära dig mer. Det är ett av de finaste sätten att visa att du bryr dig.
