@@ -11,6 +11,20 @@ const corsHeaders = {
 
 const BASE_URL = "https://partnerguiden.se";
 
+// HMAC-SHA256 for unsubscribe link
+async function generateHMAC(message: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const messageData = encoder.encode(message);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,6 +33,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const unsubscribeSecret = Deno.env.get("UNSUBSCRIBE_SECRET")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // This function can be called by a database webhook or manually
@@ -32,6 +47,12 @@ serve(async (req) => {
     }
 
     const name = display_name || "du";
+
+    // Generate unsubscribe link with HMAC signature
+    const expiry = Date.now() + 365 * 24 * 60 * 60 * 1000; // 1 year
+    const message = `${user_id}:${expiry}`;
+    const token = await generateHMAC(message, unsubscribeSecret);
+    const unsubscribeUrl = `${supabaseUrl}/functions/v1/unsubscribe?token=${encodeURIComponent(token)}&id=${user_id}&exp=${expiry}`;
 
     console.log(`Sending welcome email to ${email} (user: ${user_id})`);
 
@@ -127,6 +148,11 @@ serve(async (req) => {
               </p>
               <p style="margin: 10px 0 0 0; color: #aaa; font-size: 11px;">
                 Du får detta mail för att du precis skapade ett konto på partnerguiden.se
+              </p>
+              <p style="margin: 10px 0 0 0;">
+                <a href="${unsubscribeUrl}" style="color: #aaa; font-size: 11px; text-decoration: underline;">
+                  Avregistrera dig från dagliga mail
+                </a>
               </p>
             </td>
           </tr>
