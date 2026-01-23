@@ -27,12 +27,14 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+  const signInWithMagicLink = async (email: string, displayName?: string) => {
+    // Always use production domain for magic link redirect
+    const redirectUrl = import.meta.env.PROD 
+      ? "https://partnerguiden.se/" 
+      : `${window.location.origin}/`;
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
@@ -41,30 +43,6 @@ export function useAuth() {
       },
     });
 
-    // If signup successful, trigger welcome email
-    if (!error && data.user) {
-      try {
-        await supabase.functions.invoke("send-welcome-email", {
-          body: {
-            user_id: data.user.id,
-            email: email,
-            display_name: displayName,
-          },
-        });
-      } catch (emailError) {
-        // Don't fail signup if welcome email fails
-        console.error("Failed to send welcome email:", emailError);
-      }
-    }
-
-    return { error };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
     return { error };
   };
 
@@ -77,8 +55,7 @@ export function useAuth() {
     user,
     session,
     loading,
-    signUp,
-    signIn,
+    signInWithMagicLink,
     signOut,
   };
 }
