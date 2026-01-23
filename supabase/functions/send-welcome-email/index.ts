@@ -105,6 +105,14 @@ serve(async (req) => {
                 <tr>
                   <td style="padding: 15px; background-color: #f8f4f0; border-radius: 8px; margin-bottom: 10px;">
                     <p style="margin: 0; color: #4A4A4A; font-size: 15px;">
+                      🔑 <strong>Inga lösenord</strong> – Du loggar in via länk i mejlet, enkelt och säkert
+                    </p>
+                  </td>
+                </tr>
+                <tr><td style="height: 10px;"></td></tr>
+                <tr>
+                  <td style="padding: 15px; background-color: #f8f4f0; border-radius: 8px; margin-bottom: 10px;">
+                    <p style="margin: 0; color: #4A4A4A; font-size: 15px;">
                       📊 <strong>Följ framstegen</strong> – Se hur långt du kommit i kursen
                     </p>
                   </td>
