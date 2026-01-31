@@ -25,6 +25,105 @@ async function generateHMAC(message: string, secret: string): Promise<string> {
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
+// Send admin notification about new registration
+async function sendAdminNotification(
+  supabase: any,
+  resend: any,
+  newUserEmail: string,
+  newUserName: string
+) {
+  try {
+    // Get admin user IDs from user_roles
+    const { data: adminRoles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (rolesError || !adminRoles?.length) {
+      console.log("No admins found or error:", rolesError);
+      return;
+    }
+
+    // Get admin emails from auth.users
+    for (const adminRole of adminRoles) {
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+        adminRole.user_id
+      );
+
+      if (userError || !userData?.user?.email) {
+        console.log("Could not get admin email:", userError);
+        continue;
+      }
+
+      const adminEmail = userData.user.email;
+      console.log(`Sending admin notification to ${adminEmail}`);
+
+      await resend.emails.send({
+        from: "Partnerguiden: Klimakteriet <noreply@partnerguiden.se>",
+        to: [adminEmail],
+        subject: "🆕 Ny användare registrerad",
+        html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f4f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f4f0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #8B7355 0%, #A0876B 100%); padding: 25px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">🆕 Ny registrering</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px;">
+              <p style="margin: 0 0 15px 0; color: #4A4A4A; font-size: 16px;">
+                En ny användare har registrerat sig på Partnerguiden:
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f4f0; border-radius: 8px; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 10px 0; color: #6B5B4F; font-size: 14px;">
+                      <strong>Namn:</strong> ${newUserName || "Ej angivet"}
+                    </p>
+                    <p style="margin: 0; color: #6B5B4F; font-size: 14px;">
+                      <strong>E-post:</strong> ${newUserEmail}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 20px 0 0 0; color: #888; font-size: 13px; text-align: center;">
+                Registrerad ${new Date().toLocaleString("sv-SE", { timeZone: "Europe/Stockholm" })}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f8f4f0; padding: 20px; text-align: center; border-top: 1px solid #e8e0d8;">
+              <p style="margin: 0; color: #888; font-size: 12px;">
+                Admin-notifikation från Partnerguiden: Klimakteriet
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+        `,
+      });
+      console.log(`Admin notification sent to ${adminEmail}`);
+    }
+  } catch (error) {
+    console.error("Error sending admin notification:", error);
+    // Don't throw - admin notification failure shouldn't break welcome email
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -174,6 +273,9 @@ serve(async (req) => {
     });
 
     console.log("Welcome email sent successfully:", emailResult);
+
+    // Send admin notification (async, don't wait)
+    await sendAdminNotification(supabase, resend, email, name);
 
     return new Response(
       JSON.stringify({ success: true, result: emailResult }),
