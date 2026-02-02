@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, BarChart3, GraduationCap, Shield, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -31,17 +32,29 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signInWithMagicLink(email, name);
-
-    if (error) {
-      toast({
-        title: "Något gick fel",
-        description: error.message,
-        variant: "destructive",
+    try {
+      // Call our custom magic link edge function
+      const { data, error } = await supabase.functions.invoke("send-magic-link", {
+        body: { email, name: name || undefined, redirectTo: "/" },
       });
-    } else {
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || "Något gick fel");
+      }
+
       setEmailSent(true);
       setSubmittedEmail(email);
+    } catch (error: any) {
+      console.error("Magic link error:", error);
+      toast({
+        title: "Något gick fel",
+        description: error.message || "Kunde inte skicka inloggningslänk",
+        variant: "destructive",
+      });
     }
 
     setLoading(false);
