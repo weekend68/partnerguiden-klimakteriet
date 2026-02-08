@@ -262,7 +262,7 @@ const Article = () => {
             {progress?.quiz_completed && (
               <div className="bg-primary text-primary-foreground rounded-full px-3 py-1.5 text-sm font-medium flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4" />
-                Quiz klarat ({progress.quiz_score}/5)
+                Quiz klarat ({progress.quiz_score}/3)
               </div>
             )}
           </div>
@@ -344,27 +344,86 @@ const Article = () => {
           </ReactMarkdown>
         </article>
 
-        {/* Quiz CTA */}
-        <div className="mt-12 p-6 bg-muted/50 rounded-lg border border-border">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <BookCheck className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-serif text-xl font-medium mb-2">
-                {progress?.quiz_completed ? "Quiz avklarat!" : "Testa din förståelse"}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {progress?.quiz_completed
-                  ? `Du fick ${progress.quiz_score} av 5 rätt. Vill du försöka igen?`
-                  : "Ta ett kort quiz med 5 frågor baserat på artikeln du just läst."}
-              </p>
-              <Button onClick={() => navigate(`/quiz/${article.slug}`)}>
-                {progress?.quiz_completed ? "Ta quiz igen" : "Ta quiz"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+        {/* Quiz CTA – Next step in the journey */}
+        <div className={`mt-12 rounded-xl border-2 overflow-hidden ${
+          progress?.quiz_completed 
+            ? 'border-primary/30 bg-primary/5' 
+            : 'border-primary/40 bg-gradient-to-br from-primary/5 via-background to-accent/10'
+        }`}>
+          <div className="p-6 md:p-8">
+            {progress?.quiz_completed ? (
+              /* Completed state */
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-serif text-lg font-medium text-foreground">
+                    Steg {currentIndex + 1} avklarat ✓
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Du fick {progress.quiz_score} av 3 rätt.{" "}
+                    <button 
+                      onClick={() => navigate(`/quiz/${article.slug}`)}
+                      className="text-primary hover:underline"
+                    >
+                      Gör om quizet
+                    </button>
+                  </p>
+                </div>
+                {nextArticle && (
+                  <Button onClick={() => navigate(`/artikel/${nextArticle.slug}`)} size="sm">
+                    Nästa artikel
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              /* Not completed – encourage as next step */
+              <div className="text-center max-w-md mx-auto">
+                <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary/80 mb-3">
+                  <span className="w-8 h-px bg-primary/30" />
+                  Nästa steg
+                  <span className="w-8 h-px bg-primary/30" />
+                </div>
+                <h3 className="font-serif text-xl md:text-2xl font-medium mb-3 text-foreground">
+                  Dags att reflektera 💡
+                </h3>
+                <p className="text-muted-foreground mb-6 text-sm md:text-base">
+                  Tre korta frågor som hjälper dig omsätta det du läst till praktiken. 
+                  Svara rätt på minst en – sedan är du redo för nästa artikel!
+                </p>
+                <Button 
+                  onClick={() => navigate(`/quiz/${article.slug}`)} 
+                  size="lg"
+                  className="rounded-full px-8"
+                >
+                  <BookCheck className="mr-2 h-5 w-5" />
+                  Starta reflektionen
+                </Button>
+              </div>
+            )}
           </div>
+          
+          {/* Journey progress indicator */}
+          {!progress?.quiz_completed && (
+            <div className="bg-muted/30 border-t border-border/50 px-6 py-3">
+              <div className="flex items-center justify-center gap-1.5">
+                {allArticles.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i < currentIndex
+                        ? 'w-6 bg-primary/60'
+                        : i === currentIndex
+                        ? 'w-8 bg-primary'
+                        : 'w-4 bg-muted-foreground/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* CTA for non-logged-in users */}
