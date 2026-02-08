@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArticleAdmin } from "@/components/admin/ArticleAdmin";
-import { Users, BookOpen, CheckCircle, TrendingUp, ArrowLeft, Loader2, ShieldAlert, Mail, Play, RefreshCw, FileText, BarChart3 } from "lucide-react";
+import { Users, BookOpen, CheckCircle, TrendingUp, ArrowLeft, Loader2, ShieldAlert, FileText, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ArticleTitleMap {
@@ -27,18 +27,6 @@ interface AdminStats {
   topActiveUsers?: { userId: string; quizzesCompleted: number }[];
 }
 
-interface EmailPreferences {
-  email_enabled: boolean;
-  email_frequency: string;
-  journey_start_date: string;
-}
-
-interface EmailLogEntry {
-  article_slug: string;
-  article_index: number;
-  sent_at: string;
-  status: string;
-}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -47,10 +35,8 @@ export default function Admin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [emailPrefs, setEmailPrefs] = useState<EmailPreferences | null>(null);
-  const [emailLog, setEmailLog] = useState<EmailLogEntry[]>([]);
-  const [emailLoading, setEmailLoading] = useState(false);
-  const [triggerLoading, setTriggerLoading] = useState(false);
+
+
   const [articleTitles, setArticleTitles] = useState<ArticleTitleMap>({});
 
   useEffect(() => {
@@ -100,31 +86,7 @@ export default function Admin() {
       }
     };
 
-    const fetchEmailData = async () => {
-      if (!user) return;
-      
-      // Fetch email preferences
-      const { data: prefs } = await supabase
-        .from("user_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (prefs) {
-        setEmailPrefs(prefs as EmailPreferences);
-      }
 
-      // Fetch email log
-      const { data: logs } = await supabase
-        .from("email_log")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("sent_at", { ascending: false });
-      
-      if (logs) {
-        setEmailLog(logs as EmailLogEntry[]);
-      }
-    };
 
     const fetchArticleTitles = async () => {
       const { data } = await supabase
@@ -141,99 +103,10 @@ export default function Admin() {
     };
 
     fetchStats();
-    fetchEmailData();
     fetchArticleTitles();
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
-  const enableEmailFlow = async () => {
-    if (!user) return;
-    setEmailLoading(true);
-    
-    try {
-      const { error } = await supabase.from("user_preferences").insert({
-        user_id: user.id,
-        email_frequency: "daily",
-        skip_weekends: false,
-        email_enabled: true,
-      });
 
-      if (error) throw error;
-
-      toast.success("Mejlflöde aktiverat! Du får första mejlet inom 2 minuter.");
-      
-      // Refresh data
-      const { data: prefs } = await supabase
-        .from("user_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (prefs) {
-        setEmailPrefs(prefs as EmailPreferences);
-      }
-    } catch (err) {
-      console.error("Error enabling email flow:", err);
-      toast.error("Kunde inte aktivera mejlflöde");
-    } finally {
-      setEmailLoading(false);
-    }
-  };
-
-  const triggerTestEmail = async () => {
-    setTriggerLoading(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-daily-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            "x-admin-test": "true",
-          },
-          body: JSON.stringify({}),
-        }
-      );
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        toast.success(`Mejl skickat! (${data.emailsSent} mejl)`);
-        
-        // Refresh email log
-        if (user) {
-          const { data: logs } = await supabase
-            .from("email_log")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("sent_at", { ascending: false });
-          
-          if (logs) {
-            setEmailLog(logs as EmailLogEntry[]);
-          }
-        }
-      } else {
-        throw new Error(data.error || "Kunde inte skicka mejl");
-      }
-    } catch (err) {
-      console.error("Error triggering email:", err);
-      toast.error(err instanceof Error ? err.message : "Kunde inte skicka mejl");
-    } finally {
-      setTriggerLoading(false);
-    }
-  };
-
-  const resetEmailLog = async () => {
-    if (!user) return;
-    
-    try {
-      // We can't delete with RLS, but we can use service role in edge function
-      // For now, just show info
-      toast.info("Kontakta support för att återställa mejlloggen");
-    } catch (err) {
-      console.error("Error resetting log:", err);
-    }
-  };
 
   const getArticleTitle = (slug: string) => {
     return articleTitles[slug] || slug;
@@ -313,10 +186,6 @@ export default function Admin() {
             <TabsTrigger value="articles" className="gap-2">
               <FileText className="h-4 w-4" />
               Artiklar
-            </TabsTrigger>
-            <TabsTrigger value="email" className="gap-2">
-              <Mail className="h-4 w-4" />
-              Mejlflöde
             </TabsTrigger>
           </TabsList>
 
@@ -549,120 +418,8 @@ export default function Admin() {
             <ArticleAdmin />
           </TabsContent>
 
-          <TabsContent value="email">
-        {/* Email Flow Testing Section */}
-        <div>
-          <h2 className="font-serif text-2xl font-medium mb-6 flex items-center gap-2">
-            <Mail className="h-6 w-6" />
-            Mejlflöde (Admin Test)
-          </h2>
-          
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Email Status Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Din mejlstatus</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {emailPrefs ? (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Status</span>
-                      <span className={`font-medium ${emailPrefs.email_enabled ? "text-green-600" : "text-red-600"}`}>
-                        {emailPrefs.email_enabled ? "Aktivt" : "Pausat"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Frekvens</span>
-                      <span className="font-medium text-foreground">
-                        {emailPrefs.email_frequency === "daily" ? "Dagligen" : "Veckovis"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Mejl skickade</span>
-                      <span className="font-medium text-foreground">{emailLog.length} / 13</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground mb-4">Mejlflöde ej aktiverat</p>
-                    <Button onClick={enableEmailFlow} disabled={emailLoading}>
-                      {emailLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Play className="h-4 w-4 mr-2" />
-                      )}
-                      Aktivera mejlflöde
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Manual Trigger Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Manuell triggning</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Cron-jobbet körs automatiskt var 2:a minut för admin-användare. 
-                  Du kan också trigga det manuellt här.
-                </p>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={triggerTestEmail} 
-                    disabled={triggerLoading || !emailPrefs}
-                    className="flex-1"
-                  >
-                    {triggerLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Mail className="h-4 w-4 mr-2" />
-                    )}
-                    Skicka test-mejl nu
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={resetEmailLog}
-                    disabled={!emailPrefs}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Email Log */}
-          {emailLog.length > 0 && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Skickade mejl</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {emailLog.map((log, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                      <span className="text-sm text-muted-foreground">
-                        Dag {log.article_index + 1}: {getArticleTitle(log.article_slug)}
-                      </span>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className={`${log.status === "sent" ? "text-green-600" : "text-red-600"}`}>
-                          {log.status === "sent" ? "✓ Skickat" : "✗ Misslyckades"}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {new Date(log.sent_at).toLocaleString("sv-SE")}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-          </TabsContent>
         </Tabs>
       </main>
     </div>
