@@ -65,7 +65,7 @@ test.describe('Article detail page', () => {
     const firstArticle = page.locator('a[href^="/artikel/"]').first();
     await firstArticle.click();
     
-    const quizButton = page.getByRole('button', { name: /Ta quiz/i });
+    const quizButton = page.getByRole('button', { name: /Starta reflektionen/i });
     await expect(quizButton).toBeVisible();
   });
 

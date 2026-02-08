@@ -116,7 +116,7 @@ export default function Quiz() {
   // Calculate derived values
   const currentArticleIndex = allArticles.findIndex((a) => a.slug === slug);
   const nextArticle = allArticles[currentArticleIndex + 1];
-  const passed = score >= 3;
+  const passed = score >= 1;
   const isLastArticle = currentArticleIndex === allArticles.length - 1 && allArticles.length > 0;
 
   // CRITICAL: Save quiz result and detect course completion
@@ -354,10 +354,10 @@ export default function Quiz() {
                   </p>
                   <p className="text-muted-foreground mb-8">
                     {passed
-                      ? percentage >= 80
-                        ? "Fantastiskt! Du har verkligen förstått innehållet."
-                        : "Bra jobbat! Du klarade gränsen på 3 rätt."
-                      : "Du behöver minst 3 rätt för att klara quizet. Läs artikeln igen och försök på nytt!"}
+                      ? percentage === 100
+                        ? "Perfekt! Du hade alla rätt – imponerande!"
+                        : "Bra jobbat! Du klarade quizet."
+                      : "Du behöver minst 1 rätt för att klara quizet. Läs artikeln igen och försök på nytt!"}
                   </p>
 
                   {user && passed && (
