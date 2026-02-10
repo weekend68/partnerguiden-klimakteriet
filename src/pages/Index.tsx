@@ -100,29 +100,28 @@ const Index = () => {
                 <div className="text-center sm:text-left">
                   <p className="text-sm">
                     <span className="font-medium text-primary">🎉 Grattis! Du har klarat hela kursen!</span>{" "}
-                    <Link
-                      to="/grattis"
-                      className="text-primary hover:underline"
-                    >
+                    <Link to="/grattis" className="text-primary hover:underline">
                       Se ditt diplom →
                     </Link>
                   </p>
                 </div>
-              ) : nextArticle && (
-                <div className="text-center sm:text-left">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Nästa:</span>{" "}
-                    <Link
-                      to={`/artikel/${nextArticle.slug}`}
-                      className="text-primary hover:underline truncate inline-block max-w-[250px] sm:max-w-none align-bottom"
-                    >
-                      {nextArticle.title}
-                    </Link>
-                    {getArticleProgress(nextArticle.id)?.article_read && (
-                      <CheckCircle className="inline-block ml-1.5 h-4 w-4 text-primary align-text-bottom" />
-                    )}
-                  </p>
-                </div>
+              ) : (
+                nextArticle && (
+                  <div className="text-center sm:text-left">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Nästa:</span>{" "}
+                      <Link
+                        to={`/artikel/${nextArticle.slug}`}
+                        className="text-primary hover:underline truncate inline-block max-w-[250px] sm:max-w-none align-bottom"
+                      >
+                        {nextArticle.title}
+                      </Link>
+                      {getArticleProgress(nextArticle.id)?.article_read && (
+                        <CheckCircle className="inline-block ml-1.5 h-4 w-4 text-primary align-text-bottom" />
+                      )}
+                    </p>
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -164,7 +163,10 @@ const Index = () => {
               </Button>
             </div>
             {!user && (
-              <Link to="/auth" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mt-6 animate-fade-in stagger-3">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mt-6 animate-fade-in stagger-3"
+              >
                 Få kursen i din inbox varje dag – börja här
               </Link>
             )}
@@ -213,13 +215,13 @@ const Index = () => {
               {hasProgress ? `Nästa artikel: ${nextArticle.title}` : `Första artikeln: ${nextArticle.title}`}
             </h2>
             <div className="bg-card rounded-lg shadow-card overflow-hidden">
-              <img 
-                src={nextArticle.image_url || `/images/${nextArticle.image_filename}`} 
-                alt={nextArticle.image_alt || nextArticle.title} 
+              <img
+                src={nextArticle.image_url || `/images/${nextArticle.image_filename}`}
+                alt={nextArticle.image_alt || nextArticle.title}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 768px, 896px"
                 loading="lazy"
                 decoding="async"
-                className="w-full h-64 object-cover" 
+                className="w-full h-64 object-cover"
               />
               <div className="p-6 md:p-8">
                 <p className="text-muted-foreground mb-6 text-lg">{nextArticle.excerpt}</p>
