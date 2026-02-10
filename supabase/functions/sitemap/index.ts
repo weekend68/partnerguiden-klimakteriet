@@ -40,19 +40,19 @@ Deno.serve(async (req) => {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${BASE_URL}/articles</loc>
+    <loc>${BASE_URL}/artiklar</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>${BASE_URL}/about</loc>
+    <loc>${BASE_URL}/om</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>${BASE_URL}/privacy</loc>
+    <loc>${BASE_URL}/integritetspolicy</loc>
     <lastmod>${today}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
         
         sitemap += `
   <url>
-    <loc>${BASE_URL}/article/${article.slug}</loc>
+    <loc>${BASE_URL}/artikel/${article.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
