@@ -26,16 +26,3 @@ Partnerguiden är ett ideellt projekt skapat för att ge partners konkret kunska
 ## Bakgrund
 
 Projektet är byggt med [Lovable](https://lovable.dev).
-
-## Contributors
-
-<a href="https://github.com/weekend68">
-  <img src="https://github.com/weekend68.png" width="60" style="border-radius:50%" alt="weekend68" />
-</a>
-&nbsp;&nbsp;
-<a href="https://lovable.dev">
-  <img src="https://avatars.githubusercontent.com/u/186682862?s=200" width="60" style="border-radius:50%" alt="Lovable" />
-</a>
-
-- **[weekend68](https://github.com/weekend68)** – skapare och projektägare
-- **[Lovable](https://lovable.dev)** – AI-verktyget som byggt koden
