@@ -1,28 +1,43 @@
+# Ny README.md på svenska
 
+## Målgrupp och ton
 
-# Kodstädning inför publicering av repo
+README:n skrivs som ett **showcase/portfolio-dokument** -- inte som en installationsguide. Den riktar sig till dig själv (framtida referens) och nyfikna besökare som hittar repot.
 
-## Vad som ska göras
+## Innehåll
 
-Ta bort oanvänd kod och filer för att göra repot renare och mer professionellt -- utan att ändra någon funktionalitet.
+### 1. Projektnamn och kort beskrivning
 
-## Ändringar
+Partnerguiden: Klimakteriet -- vad sajten handlar om i 1-2 meningar.
 
-### 1. Ta bort oanvända filer
-- **`src/data/articles-old.ts`** -- en 1243 rader lång fil med hårdkodade artiklar som inte importeras någonstans. Troligen en rest från innan artiklarna flyttades till databasen.
-- **`src/App.css`** -- Vites standardmall-CSS (`.logo`, `.read-the-docs` etc.) som aldrig importeras.
-- **`src/hooks/useDocumentTitle.ts`** -- En hook som definieras men aldrig används av någon komponent.
+### 2. Länk till live-sajten
 
-### 2. Rensa bort extra tomrader i Admin.tsx
-Några ställen med dubbla/trippla tomrader som ser slarviga ut.
+Direkt länk till [partnerguiden.se](http://partnerguiden.se) 
 
-## Vad som INTE ändras (och varför)
-- **`font-heading`** i Tailwind-klasser -- Används på många ställen. Att ändra riskerar att påverka utseendet. Fungerar i praktiken via CSS-fallback.
-- **Dubbla toast-system** (sonner + radix) -- Båda används aktivt på olika ställen. Att konsolidera kräver genomgång av alla toast-anrop och kan ändra beteende/utseende.
-- **shadcn/ui-komponenter** som eventuellt inte används -- De är standard och skadar inte.
+### 3. Om projektet
+
+Kort stycke om varför projektet finns -- att det är ett ideellt projekt för att hjälpa partners förstå klimakteriet.
+
+### 4. Funktioner
+
+Punktlista med huvudfunktionerna:
+
+- Artikelserier med quizfrågor
+- Framstegshantering med konto
+- Dagliga mejlutskick
+- Admin-panel for artikelhantering
+- SEO-optimerad med sitemap
+
+### 5. Teknikstack
+
+Kort lista: React, TypeScript, Tailwind CSS, Vite, Lovable Cloud (backend).
+
+### 6. Bakgrund
+
+En mening om att projektet är byggt med Lovable.
 
 ## Teknisk information
-- Tre filer tas bort helt
-- En fil (Admin.tsx) får kosmetiska whitespace-ändringar
-- Ingen funktionalitet påverkas
 
+- Filen `README.md` i projektets rot skrivs om helt
+- Den nuvarande README:n är Lovables standardmall och innehåller inget projektspecifikt
+- Ingen annan fil påverkas
