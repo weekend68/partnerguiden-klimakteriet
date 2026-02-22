@@ -13,6 +13,7 @@ import { toast } from "sonner";
 interface ArticleTitleMap {
   [slug: string]: string;
 }
+
 interface AdminStats {
   totalUsers: number;
   usersWithProgress: number;
@@ -35,8 +36,6 @@ export default function Admin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-
   const [articleTitles, setArticleTitles] = useState<ArticleTitleMap>({});
 
   useEffect(() => {
@@ -105,8 +104,6 @@ export default function Admin() {
     fetchStats();
     fetchArticleTitles();
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
-
-
 
   const getArticleTitle = (slug: string) => {
     return articleTitles[slug] || slug;
@@ -417,9 +414,6 @@ export default function Admin() {
           <TabsContent value="articles">
             <ArticleAdmin />
           </TabsContent>
-
-
-
         </Tabs>
       </main>
     </div>
